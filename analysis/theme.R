@@ -36,7 +36,7 @@ theme_paper <- function(base_size = 12, base_family = "sans") {
       panel.grid = element_blank(),
 
       # Spacing
-      panel.spacing = unit(12, "pt"),
+      panel.spacing = unit(8, "pt"),
       plot.margin = margin(4, 4, 4, 4),
 
       # Facets
@@ -47,11 +47,7 @@ theme_paper <- function(base_size = 12, base_family = "sans") {
       legend.key = element_blank(),
       legend.title = element_markdown(size = base_size),
       legend.text = element_markdown(size = base_size - 1),
-      # legend.background = element_rect(
-      #   fill = scales::alpha("white", 0.75),
-      #   colour = NA
-      # ),
-      # legend.margin = margin(0, 0, 0, 0),
+      legend.spacing = unit(0, "pt"),
       legend.box.background = element_blank()
     )
 }
