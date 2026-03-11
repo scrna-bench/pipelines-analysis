@@ -1,0 +1,6 @@
+.DS_Store
+data/*.*sv
+.Rproj.user
+*.Rproj
+*.Rhistory
+out

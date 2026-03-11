@@ -1,0 +1,91 @@
+---
+title: "Figure 2"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE,
+  dpi = 300, dev = c("png", "pdf"),
+  fig.path = Sys.getenv("RMD_FIG_PATH", "figs/")
+)
+
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(patchwork)
+
+source("theme.R")
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source("data.R")
+```
+
+# Compare with Iliana
+
+```{r compare-iliana}
+iliana_long <- iliana %>%
+  pivot_longer(
+    cols = c(agree_ari_leiden, agree_ari_louvain),
+    names_to = "best_for", values_to = "iliana_ari"
+  ) %>%
+  mutate(
+    best_for = recode(
+      best_for,
+      agree_ari_leiden = "leiden", agree_ari_louvain = "louvain"
+    )
+  )
+
+p_ari <- metrics_new %>%
+  group_by(dataset, method) %>%
+  summarize(
+    leiden = quantile(agree_ari_leiden, probs = 0.95, na.rm = TRUE),
+    louvain = quantile(agree_ari_louvain, probs = 0.95, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(leiden, louvain),
+    names_to = "best_for", values_to = "our_ari"
+  ) %>%
+  arrange(method, dataset, best_for)
+
+compare_ari <- p_ari %>%
+  left_join(iliana_long, by = c("dataset", "method", "best_for")) %>%
+  mutate(
+    method = factor(method, levels = names(met_cols)),
+    best_for = factor(as.character(best_for), levels = c("leiden", "louvain")),
+    dataset = factor(dataset, levels = dataset_levels)
+  ) %>%
+  arrange(method, dataset, best_for)
+
+compare_ari
+```
+
+```{r plot-iliana, fig.height=4.5, fig.width=5}
+ari_limits_p95 <- range(
+  c(compare_ari$iliana_ari, compare_ari$our_ari_p95),
+  na.rm = TRUE
+)
+
+p_iliana <- ggplot(compare_ari, aes(
+  x = iliana_ari, y = our_ari,
+  color = method, size = best_for, shape = dataset
+)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(alpha = 0.8) +
+  labs(
+    x = "<i>Billato et al.</i> ARI", y = "Our 95<sup>th</sup> percentile ARI",
+    color = "Method"
+  ) +
+  coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
+  scale_color_method(name = "Method") +
+  scale_shape_discrete(name = "Dataset") +
+  scale_size_manual(name = "Algorithm", values = c(leiden = 2.5, louvain = 1.5))
+
+p_iliana
+```
