@@ -16,7 +16,6 @@ library(patchwork)
 library(reshape2)
 library(here)
 library(cowplot)
-library(patchwork)
 library(magick)
 
 analysis_dir <- here("analysis")
@@ -180,9 +179,9 @@ panel_b <- ggplot(timings %>% filter(dataset=="cb"), aes(method, pca, colour=n_c
   scale_color_manual(values = my_pal[c(2,5,8)]) +
   scale_shape_manual(values = c(1,3,5,4)) +
   # scale_color_manual(values = my_pal) +
-  labs(color = "#comps", shape = "#hvgs") +
+  labs(color = "#comps", shape = "#hvgs", x = element_blank()) +
   ylab("PCA time (s)") +
-  xlab("") +
+  #xlab("") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 30, hjust = 1),
         legend.text=element_text(size=6), legend.key.size = unit(.5, "cm")) +
@@ -231,7 +230,7 @@ panel_d
 
 # Patchwork
 
-```{r fig1, fig.height=6, fig.width=10}
+```{r fig1, fig.height=7, fig.width=10}
 layout_main <- "
 AAABB
 AAACC
