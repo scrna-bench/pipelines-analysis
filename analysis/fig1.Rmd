@@ -14,14 +14,20 @@ library(ggplot2)
 library(ggtext)
 library(patchwork)
 library(reshape2)
+library(here)
+library(cowplot)
+library(patchwork)
+library(magick)
 
-source("knitr.R")
-source("theme.R")
+analysis_dir <- here("analysis")
+
+source(file.path(analysis_dir,"knitr.R"))
+source(file.path(analysis_dir,"theme.R"))
 theme_set(theme_paper(base_size = 12))
 ```
 
 ```{r load_data, include=FALSE}
-source("data.R")
+source(file.path(analysis_dir,"data.R"))
 ```
 
 # Preliminaries
@@ -72,6 +78,8 @@ timings$comps_hvgs <- as.factor(paste0(timings$n_comp,":",timings$n_hvg))
 timings$comps_neig <- as.factor(paste0(timings$n_comp,":",timings$n_neig))
 
 
+colnames(timings) <- gsub("timings_","", colnames(timings))
+
 timings_m <- melt(timings %>% select(-comps_hvgs, -comps_neig), 
                   id.vars = c("dataset", "method", "module", "filtering",
                               "n_comp", "n_neig", "n_hvg", "d_cluster"))
@@ -86,181 +94,165 @@ timings_m %>% filter(n_comp == 30, n_neig == 15, n_hvg==2000,
 
 # Timings figures
 
-```{r timings, fig.height=5, fig.width=9}
+```{r timings, fig.height=3.5, fig.width=8}
 
 ggplot(timings, aes(method, pca, colour=comps_hvgs)) + 
   geom_point(position = position_jitterdodge(dodge.width = .85,
-                                             jitter.width = .2, 
+                                             jitter.width = .15, 
                                              jitter.height = 0)) +
   facet_wrap(~dataset, scales = "free") +
   scale_color_manual(values = my_pal) +
+  labs(color = "#comps:#hvgs") +
+  ylab("PCA time (s)") +
   theme_classic() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.text=element_text(size=8)) +
   scale_y_log10()
 
 
 ggplot(timings, aes(method, leiden, colour=n_neig)) + 
   geom_point(position = position_jitterdodge(dodge.width = .6,
-                                             jitter.width = .2, 
+                                             jitter.width = .15, 
                                              jitter.height = 0)) +
   facet_wrap(~dataset, scales = "free") +
   scale_color_manual(values = my_pal_12) +
+  ylab("Leiden time (s)") +
+  labs(color = "#neighbours") +
   theme_classic() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.text=element_text(size=8)) +
   scale_y_log10()
 
 
 
 ggplot(timings, aes(method, umap, colour=n_comp)) + 
-  geom_point(position = position_jitterdodge(dodge.width = 1,
-                                             jitter.width = .2, 
+  geom_point(position = position_jitterdodge(dodge.width = .6,
+                                             jitter.width = .15, 
                                              jitter.height = 0)) +
   facet_wrap(~dataset, scales = "free") +
   scale_color_manual(values = my_pal[c(2,5,8)]) +
+  labs(color = "#comps") +
+  ylab("UMAP time (s)") +
   theme_classic() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.text=element_text(size=8)) +
   scale_y_log10()
 
 
 
 
 timings_m$method_cluster <- as.factor(paste0(timings_m$method,".",timings_m$d_cluster))
+table(timings_m$method_cluster)
 
-ggplot(timings_m %>% filter(filtering == "manual", n_comp == 20, 
-                            n_neig == 15, n_hvg==2000, module != ""
-                            !(variable %in% c("find_mit_gene","filter",
-                                              "t_sne","leiden"))), 
+timings_m_s <- timings_m %>% 
+  filter(filtering == "manual", n_comp == 20,
+         n_neig == 15, n_hvg==2000, module != "pipelines-py-old",
+         !(variable %in% c("find_mit_gene","filter","t_sne","leiden")))
+table(timings_m_s$method_cluster)
+
+
+ggplot(timings_m_s, 
        aes(x = method_cluster, y = value, fill = variable)) +
   geom_bar(position = "fill", stat = "identity") +
-  facet_wrap(~dataset, scales="free_y")
-#+ theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))
+  facet_wrap(~dataset, scales="free_y") +
+  scale_fill_manual(values = my_pal_12[c(1,5,9,2,6,10)]) +
+  ylab("Proportion of time") +
+  xlab("method-delta cluster number") +
+  # xlab("method-\u0394 cluster number") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 6),
+        legend.text=element_text(size=8))
 
 ```
 
-# ARI v Timings
 
-```{r leiden-ari-vs-total-timing, fig.height=4.5, fig.width=8}
-timing_cols_keep <- paste0("timings_", c(
-  "find_mit_gene", "filter", "normalization",
-  "hvg", "scaling", "pca", "leiden"
-))
+# just one panel
 
-ari_vs_total_timing <- metrics_new %>%
-  filter(filtering == "manual") %>%
-  mutate(total_seconds = rowSums(pick(all_of(timing_cols_keep)), na.rm = TRUE))
+```{r timings-single-panels, fig.height=3.5, fig.width=4}
 
-ari_vs_total_timing_top <- ari_vs_total_timing %>%
-  group_by(dataset, method) %>%
-  mutate(ari_p95 = quantile(agree_ari_leiden, probs = 0.95)) %>%
-  filter(agree_ari_leiden >= ari_p95) %>%
-  ungroup() %>%
-  select(-ari_p95)
-
-p_ari_vs_total_timing <- ggplot(
-  ari_vs_total_timing_top,
-  aes(x = total_seconds, y = agree_ari_leiden, color = method)
-) +
-  geom_point(alpha = 0.8, size = 1.8) +
+panel_b <- ggplot(timings %>% filter(dataset=="cb"), aes(method, pca, colour=n_comp,
+                                                         shape=n_hvg)) + 
+  geom_point(position = position_jitterdodge(dodge.width = .85,
+                                             jitter.width = .15, 
+                                             jitter.height = 0),
+             size = .6) +
   facet_wrap(~dataset, scales = "free") +
-  scale_color_method(name = "Method") +
-  scale_x_continuous(labels = label_number()) +
-  labs(
-    x = "Total timing <i>(s)</i>",
-    y = "Leiden ARI",
-    color = "Method"
-  )
+  scale_color_manual(values = my_pal[c(2,5,8)]) +
+  scale_shape_manual(values = c(1,3,5,4)) +
+  # scale_color_manual(values = my_pal) +
+  labs(color = "#comps", shape = "#hvgs") +
+  ylab("PCA time (s)") +
+  xlab("") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.text=element_text(size=6), legend.key.size = unit(.5, "cm")) +
+  scale_y_log10()
+panel_b
 
-p_ari_vs_total_timing
+panel_c <- ggplot(timings %>% filter(dataset=="cb"), aes(method, umap, colour=n_comp)) + 
+  geom_point(position = position_jitterdodge(dodge.width = .6,
+                                             jitter.width = .15, 
+                                             jitter.height = 0),
+             size = .6) +
+  facet_wrap(~dataset, scales = "free") +
+  scale_color_manual(values = my_pal[c(2,5,8)]) +
+  ylab("UMAP time (s)") +
+  xlab("") +
+  labs(color = "#comps") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.text=element_text(size=6), legend.key.size = unit(.5, "cm"),
+        plot.margin = margin(0,0,0,0)) +
+  guides(shape = guide_legend(override.aes = list(size = 0.5))) +
+  scale_y_log10()
+panel_c
+
+
+# guides(shape = guide_legend(override.aes = list(size = 0.5))
+# panel_c + theme(legend.key.size = unit(.5, "cm"))
+
+panel_d <- ggplot(timings_m_s %>% filter(dataset=="cb"), 
+       aes(x = method_cluster, y = value, fill = variable)) +
+  geom_bar(position = "fill", stat = "identity") +
+  facet_wrap(~method, scales="free_x", nrow=1) +
+  scale_fill_manual(values = my_pal_12[c(1,5,9,2,6,10)]) +
+  ylab("Proportion of time") +
+  xlab("method-delta cluster number") +
+  xlab("") +
+  # xlab("method-\u0394 cluster number") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 6),
+        legend.text=element_text(size=6), legend.key.size = unit(.5, "cm"))
+panel_d
+
 ```
 
-# Compare with Iliana
 
-```{r compare-iliana}
-iliana_long <- iliana %>%
-  pivot_longer(
-    cols = c(agree_ari_leiden, agree_ari_louvain),
-    names_to = "best_for", values_to = "iliana_ari"
-  ) %>%
-  mutate(
-    best_for = recode(
-      best_for,
-      agree_ari_leiden = "leiden", agree_ari_louvain = "louvain"
-    )
-  )
-
-p_ari <- metrics_new %>%
-  group_by(dataset, method) %>%
-  summarize(
-    leiden = quantile(agree_ari_leiden, probs = 0.95, na.rm = TRUE),
-    louvain = quantile(agree_ari_louvain, probs = 0.95, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  pivot_longer(
-    cols = c(leiden, louvain),
-    names_to = "best_for", values_to = "our_ari"
-  ) %>%
-  arrange(method, dataset, best_for)
-
-compare_ari <- p_ari %>%
-  left_join(iliana_long, by = c("dataset", "method", "best_for")) %>%
-  mutate(
-    method = factor(method, levels = names(met_cols)),
-    best_for = factor(as.character(best_for), levels = c("leiden", "louvain")),
-    dataset = factor(dataset, levels = dataset_levels)
-  ) %>%
-  arrange(method, dataset, best_for)
-
-compare_ari
-```
-
-```{r plot-iliana, fig.height=4.5, fig.width=5}
-ari_limits_p95 <- range(
-  c(compare_ari$iliana_ari, compare_ari$our_ari_p95),
-  na.rm = TRUE
-)
-
-p_iliana <- ggplot(compare_ari, aes(
-  x = iliana_ari, y = our_ari,
-  color = method, size = best_for, shape = dataset
-)) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-  geom_point(alpha = 0.8) +
-  labs(
-    x = "<i>Billato et al.</i> ARI", y = "Our 95<sup>th</sup> percentile ARI",
-    color = "Method"
-  ) +
-  coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
-  scale_color_method(name = "Method") +
-  scale_shape_discrete(name = "Dataset") +
-  scale_size_manual(name = "Algorithm", values = c(leiden = 2.5, louvain = 1.5))
-
-p_iliana
-```
 
 # Patchwork
 
-```{r fig2, fig.height=7.6, fig.width=6.69}
+```{r fig1, fig.height=6, fig.width=10}
 layout_main <- "
-AA
-BB
-CD
+AAABB
+AAACC
+AAADD
 "
 
-p_main_panels <- (
-  (p_ari_leiden_paths + guides(color = "none")) +
-    (p_ari_vs_total_timing + guides(color = "none")) +
-    p_iliana +
-    guide_area()
-) +
-  plot_layout(
-    design = layout_main,
-    widths = c(0.90, 1.10),
-    heights = c(1.35, 1.35, 1.0),
-    guides = "collect"
-  ) +
-  plot_annotation(tag_levels = "A") &
-  theme(
-    legend.position = "left",
-    legend.box = "horizontal",
-    legend.direction = "vertical"
-  )
+# don't know why -- ggplot from SVG had missing text
+# svg_image <- image_read_svg("data/plan.svg")
+# svg_plot <- image_ggplot(svg_image)
+
+png_image <- image_read(file.path(data_dir, "plan.png"))
+png_plot <- image_ggplot(png_image)
+
+# png_plot + panel_b
+# ggsave("this.pdf")
+
+
+p_main_panels <- png_plot + panel_b + panel_c + panel_d +
+  plot_layout(design = layout_main) +
+  plot_annotation(tag_levels = "A")
 
 p_main_panels
+
 ```
