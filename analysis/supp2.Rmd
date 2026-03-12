@@ -1,0 +1,76 @@
+---
+title: "Supplementary 2"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+
+source("knitr.R")
+source("theme.R")
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source("data.R")
+```
+
+We only include runs with manual filtering, `n_comp = 50`, `n_neig = 20`, and `n_hvg = 1000`.
+
+```{r filter}
+metrics_long_new <- metrics_long_new %>%
+  filter(filtering == "manual", n_comp == 50, n_neig == 20, n_hvg == 1000)
+```
+
+# ARI v clusters
+
+These curves show ARI as a function of the number of clusters, grouped by method and filtering mode, and faceted by dataset and algorithm.
+
+```{r ari-curves, fig.height=6, fig.width=10}
+ari_curves <- metrics_long_new %>%
+  group_by(dataset, method, algorithm) %>%
+  arrange(n_clusters, .by_group = TRUE)
+
+p_ari_curves <- ggplot(
+  ari_curves, aes(x = n_clusters, y = ari, color = method)
+) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_path(alpha = 0.8) +
+  facet_grid(algorithm ~ dataset, scales = "free_x") +
+  scale_color_method(name = "Method") +
+  labs(x = "Number of clusters", y = "ARI", color = "Method")
+
+p_ari_curves
+```
+
+# Resolution v clusters
+
+```{r resolution-vs-clusters, fig.height=6, fig.width=10}
+resolution_map <- metrics_long_new %>%
+  group_by(dataset, method, algorithm, resolution) %>%
+  summarize(n_clusters = mean(n_clusters, na.rm = TRUE), .groups = "drop")
+
+p_resolution_vs_clusters <- ggplot(
+  resolution_map, aes(x = resolution, y = n_clusters, color = method)
+) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_line(alpha = 0.8) +
+  facet_grid(algorithm ~ dataset, scales = "free") +
+  scale_color_method(name = "Method") +
+  labs(x = "Resolution", y = "Number of clusters", color = "Method")
+
+p_resolution_vs_clusters
+```
+
+# Patchwork
+
+```{r supp2, fig.height=8.85, fig.width=6.69}
+(p_ari_curves / p_resolution_vs_clusters) +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = "A") & theme(legend.position = "bottom")
+```

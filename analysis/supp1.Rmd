@@ -1,0 +1,92 @@
+---
+title: "Supplementary 1"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+
+source("knitr.R")
+source("theme.R")
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source("data.R")
+```
+
+# Leiden v Louvain ARIs
+
+```{r ari-leiden-vs-louvain, fig.height=4.5, fig.width=6}
+lims <- range(
+  c(metrics_new$agree_ari_louvain, metrics_new$agree_ari_leiden),
+  na.rm = TRUE
+)
+
+p_ari_leiden_vs_louvain <- ggplot(
+  metrics_new, aes(
+    x = agree_ari_louvain, y = agree_ari_leiden,
+    color = method, shape = dataset
+  )
+) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(alpha = 0.8, size = 1.2) +
+  coord_equal(xlim = lims, ylim = lims) +
+  scale_color_method(name = "Method") +
+  scale_shape_discrete(name = "Dataset", limits = dataset_levels) +
+  labs(
+    x = "**Louvain** ARI",
+    y = "**Leiden** ARI",
+    color = "Method",
+    shape = "Dataset"
+  )
+
+p_ari_leiden_vs_louvain
+```
+
+```{r paired-differences-leiden-minus-louvain, fig.height=5, fig.width=6}
+paired_diff_df <- metrics_new %>%
+  mutate(diff_ari = agree_ari_leiden - agree_ari_louvain) %>%
+  select(method, dataset, diff_ari)
+
+p_ari_diff <- ggplot(
+  paired_diff_df, aes(x = method, y = diff_ari)
+) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  geom_point(
+    aes(color = method, shape = dataset),
+    position = position_jitterdodge(jitter.width = 0.4, dodge.width = 1.0),
+    alpha = 0.55, size = 1.1
+  ) +
+  geom_boxplot(
+    aes(group = interaction(method, dataset), fill = method, color = method),
+    position = position_dodge(width = 1.0),
+    width = 0.8, alpha = 0.2, outlier.shape = NA
+  ) +
+  scale_color_method(guide = "none") +
+  scale_fill_method(guide = "none") +
+  labs(
+    x = "Method", y = "ARI<sub>Leiden</sub> - ARI<sub>Louvain</sub>",
+    color = "Method", shape = NULL
+  )
+
+p_ari_diff
+```
+
+# Patchwork
+
+```{r supp1, fig.height=8.85, fig.width=6.6}
+p_main_panels <- (
+  p_ari_leiden_vs_louvain / (p_ari_diff + guides(shape = "none"))
+) +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  theme(legend.position = "right")
+
+p_main_panels
+```

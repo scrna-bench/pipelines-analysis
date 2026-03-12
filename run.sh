@@ -8,3 +8,5 @@ cd "${ROOT_DIR}"
 export RMD_FIG_PATH="../out/figs/"
 
 Rscript -e 'source("rv/scripts/activate.R"); rmarkdown::render("analysis/fig2.Rmd", output_dir = "out")'
+Rscript -e 'source("rv/scripts/activate.R"); rmarkdown::render("analysis/supp1.Rmd", output_dir = "out")'
+Rscript -e 'source("rv/scripts/activate.R"); rmarkdown::render("analysis/supp2.Rmd", output_dir = "out")'
