@@ -1,0 +1,266 @@
+---
+title: "Figure 1"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(patchwork)
+library(reshape2)
+
+source("knitr.R")
+source("theme.R")
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source("data.R")
+```
+
+# Preliminaries
+
+```{r prelim}
+my_pal <- c(
+  # Blue
+  "#C7DBF2",  # light blue
+  "#4C72B0",  # medium blue
+  "#234567",  # dark blue
+  
+  # Orange
+  "#FAD7B2",  # light orange
+  "#DD8452",  # medium orange
+  "#A15322",  # dark orange
+  
+  # Teal
+  "#BFE6E2",  # light teal
+  "#55A868",  # medium teal
+  "#1B6B4A"   # dark teal
+)
+
+my_pal_12 <- c(
+  # Blue (lightest → darkest)
+  "#D8E4F6",  # very light blue
+  "#A8C2E8",  # light blue
+  "#4C72B0",  # medium blue
+  "#1E3B5A",  # dark blue
+  
+  # Orange
+  "#FCE1C3",  # very light orange
+  "#F3B881",  # light orange
+  "#DD8452",  # medium orange
+  "#9B4A1C",  # dark orange
+  
+  # Teal
+  "#CDECE7",  # very light teal
+  "#93CEC2",  # light teal
+  "#55A868",  # medium teal
+  "#1A5B43"   # dark teal
+)
+
+timings$n_comp <- as.factor(timings$n_comp)
+timings$n_hvg <- as.factor(timings$n_hvg)
+timings$n_neig <- as.factor(timings$n_neig)
+
+timings$comps_hvgs <- as.factor(paste0(timings$n_comp,":",timings$n_hvg))
+timings$comps_neig <- as.factor(paste0(timings$n_comp,":",timings$n_neig))
+
+
+timings_m <- melt(timings %>% select(-comps_hvgs, -comps_neig), 
+                  id.vars = c("dataset", "method", "module", "filtering",
+                              "n_comp", "n_neig", "n_hvg", "d_cluster"))
+
+timings_m %>% filter(n_comp == 30, n_neig == 15, n_hvg==2000,
+                     dataset=="cb", method=="osca", filtering=="manual")
+
+
+```
+
+
+
+# Timings figures
+
+```{r timings, fig.height=5, fig.width=9}
+
+ggplot(timings, aes(method, pca, colour=comps_hvgs)) + 
+  geom_point(position = position_jitterdodge(dodge.width = .85,
+                                             jitter.width = .2, 
+                                             jitter.height = 0)) +
+  facet_wrap(~dataset, scales = "free") +
+  scale_color_manual(values = my_pal) +
+  theme_classic() +
+  scale_y_log10()
+
+
+ggplot(timings, aes(method, leiden, colour=n_neig)) + 
+  geom_point(position = position_jitterdodge(dodge.width = .6,
+                                             jitter.width = .2, 
+                                             jitter.height = 0)) +
+  facet_wrap(~dataset, scales = "free") +
+  scale_color_manual(values = my_pal_12) +
+  theme_classic() +
+  scale_y_log10()
+
+
+
+ggplot(timings, aes(method, umap, colour=n_comp)) + 
+  geom_point(position = position_jitterdodge(dodge.width = 1,
+                                             jitter.width = .2, 
+                                             jitter.height = 0)) +
+  facet_wrap(~dataset, scales = "free") +
+  scale_color_manual(values = my_pal[c(2,5,8)]) +
+  theme_classic() +
+  scale_y_log10()
+
+
+
+
+timings_m$method_cluster <- as.factor(paste0(timings_m$method,".",timings_m$d_cluster))
+
+ggplot(timings_m %>% filter(filtering == "manual", n_comp == 20, 
+                            n_neig == 15, n_hvg==2000, module != ""
+                            !(variable %in% c("find_mit_gene","filter",
+                                              "t_sne","leiden"))), 
+       aes(x = method_cluster, y = value, fill = variable)) +
+  geom_bar(position = "fill", stat = "identity") +
+  facet_wrap(~dataset, scales="free_y")
+#+ theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))
+
+```
+
+# ARI v Timings
+
+```{r leiden-ari-vs-total-timing, fig.height=4.5, fig.width=8}
+timing_cols_keep <- paste0("timings_", c(
+  "find_mit_gene", "filter", "normalization",
+  "hvg", "scaling", "pca", "leiden"
+))
+
+ari_vs_total_timing <- metrics_new %>%
+  filter(filtering == "manual") %>%
+  mutate(total_seconds = rowSums(pick(all_of(timing_cols_keep)), na.rm = TRUE))
+
+ari_vs_total_timing_top <- ari_vs_total_timing %>%
+  group_by(dataset, method) %>%
+  mutate(ari_p95 = quantile(agree_ari_leiden, probs = 0.95)) %>%
+  filter(agree_ari_leiden >= ari_p95) %>%
+  ungroup() %>%
+  select(-ari_p95)
+
+p_ari_vs_total_timing <- ggplot(
+  ari_vs_total_timing_top,
+  aes(x = total_seconds, y = agree_ari_leiden, color = method)
+) +
+  geom_point(alpha = 0.8, size = 1.8) +
+  facet_wrap(~dataset, scales = "free") +
+  scale_color_method(name = "Method") +
+  scale_x_continuous(labels = label_number()) +
+  labs(
+    x = "Total timing <i>(s)</i>",
+    y = "Leiden ARI",
+    color = "Method"
+  )
+
+p_ari_vs_total_timing
+```
+
+# Compare with Iliana
+
+```{r compare-iliana}
+iliana_long <- iliana %>%
+  pivot_longer(
+    cols = c(agree_ari_leiden, agree_ari_louvain),
+    names_to = "best_for", values_to = "iliana_ari"
+  ) %>%
+  mutate(
+    best_for = recode(
+      best_for,
+      agree_ari_leiden = "leiden", agree_ari_louvain = "louvain"
+    )
+  )
+
+p_ari <- metrics_new %>%
+  group_by(dataset, method) %>%
+  summarize(
+    leiden = quantile(agree_ari_leiden, probs = 0.95, na.rm = TRUE),
+    louvain = quantile(agree_ari_louvain, probs = 0.95, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(leiden, louvain),
+    names_to = "best_for", values_to = "our_ari"
+  ) %>%
+  arrange(method, dataset, best_for)
+
+compare_ari <- p_ari %>%
+  left_join(iliana_long, by = c("dataset", "method", "best_for")) %>%
+  mutate(
+    method = factor(method, levels = names(met_cols)),
+    best_for = factor(as.character(best_for), levels = c("leiden", "louvain")),
+    dataset = factor(dataset, levels = dataset_levels)
+  ) %>%
+  arrange(method, dataset, best_for)
+
+compare_ari
+```
+
+```{r plot-iliana, fig.height=4.5, fig.width=5}
+ari_limits_p95 <- range(
+  c(compare_ari$iliana_ari, compare_ari$our_ari_p95),
+  na.rm = TRUE
+)
+
+p_iliana <- ggplot(compare_ari, aes(
+  x = iliana_ari, y = our_ari,
+  color = method, size = best_for, shape = dataset
+)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(alpha = 0.8) +
+  labs(
+    x = "<i>Billato et al.</i> ARI", y = "Our 95<sup>th</sup> percentile ARI",
+    color = "Method"
+  ) +
+  coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
+  scale_color_method(name = "Method") +
+  scale_shape_discrete(name = "Dataset") +
+  scale_size_manual(name = "Algorithm", values = c(leiden = 2.5, louvain = 1.5))
+
+p_iliana
+```
+
+# Patchwork
+
+```{r fig2, fig.height=7.6, fig.width=6.69}
+layout_main <- "
+AA
+BB
+CD
+"
+
+p_main_panels <- (
+  (p_ari_leiden_paths + guides(color = "none")) +
+    (p_ari_vs_total_timing + guides(color = "none")) +
+    p_iliana +
+    guide_area()
+) +
+  plot_layout(
+    design = layout_main,
+    widths = c(0.90, 1.10),
+    heights = c(1.35, 1.35, 1.0),
+    guides = "collect"
+  ) +
+  plot_annotation(tag_levels = "A") &
+  theme(
+    legend.position = "left",
+    legend.box = "horizontal",
+    legend.direction = "vertical"
+  )
+
+p_main_panels
+```
