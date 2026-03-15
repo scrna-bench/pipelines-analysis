@@ -4,6 +4,18 @@ version = 2
 r_version = "4.5"
 
 [[packages]]
+name = "ComplexUpset"
+version = "1.3.3"
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
+force_source = false
+dependencies = [
+    "ggplot2",
+    "patchwork",
+    "scales",
+    "colorspace",
+]
+
+[[packages]]
 name = "R6"
 version = "2.6.1"
 source = { repository = "https://packagemanager.posit.co/cran/latest" }
@@ -93,6 +105,13 @@ dependencies = []
 [[packages]]
 name = "clipr"
 version = "0.8.0"
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
+force_source = false
+dependencies = []
+
+[[packages]]
+name = "colorspace"
+version = "2.1-2"
 source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []

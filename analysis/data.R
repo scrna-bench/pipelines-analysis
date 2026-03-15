@@ -4,8 +4,8 @@ library(here)
 
 data_dir <- here("data")
 
-metrics <- readr::read_tsv(file.path(data_dir, "metrics.tsv"))
-timings <- readr::read_tsv(file.path(data_dir, "timings.tsv"))
+metrics <- readr::read_tsv(file.path(data_dir, "out", "report", "metrics.tsv"))
+timings <- readr::read_tsv(file.path(data_dir, "out", "report", "timings.tsv"))
 iliana <- readr::read_csv(file.path(data_dir, "iliana.csv"))
 
 keys_m <- names(metrics)[names(metrics) %in% names(timings)]
