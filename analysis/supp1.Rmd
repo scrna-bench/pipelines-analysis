@@ -81,12 +81,8 @@ p_ari_diff
 # Patchwork
 
 ```{r supp1, fig.height=8.85, fig.width=6.6}
-p_main_panels <- (
-  p_ari_leiden_vs_louvain / (p_ari_diff + guides(shape = "none"))
-) +
+(p_ari_leiden_vs_louvain / (p_ari_diff + guides(shape = "none"))) +
   plot_layout(guides = "collect") +
   plot_annotation(tag_levels = "A") &
   theme(legend.position = "right")
-
-p_main_panels
 ```

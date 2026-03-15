@@ -1,0 +1,135 @@
+---
+title: "Supplementary 3"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ComplexUpset)
+library(ggplot2)
+library(patchwork)
+
+source("knitr.R")
+source("theme.R")
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source("data.R")
+```
+
+```{r rapids-version-comparison, fig.height=4.5, fig.width=5}
+rapids_versions <- metrics_long %>%
+  filter(
+    method == "rapids", module %in% c("pipelines-py", "pipelines-py-old"),
+    filtering == "manual", n_comp == 30, n_neig == 20, n_hvg == 1000
+  ) %>%
+  mutate(
+    module = recode(
+      module,
+      "pipelines-py" = "v0.14.1", "pipelines-py-old" = "v0.13.5"
+    )
+  )
+
+rsc_version_label <- "**rapids-singlecell**<br/>version"
+
+p_rsc <- ggplot(
+  rapids_versions, aes(x = n_clusters, y = ari, color = module)
+) +
+  geom_point(aes(size = module), alpha = 0.85) +
+  geom_line(aes(linewidth = module), alpha = 0.85) +
+  scale_size_manual(values = c("v0.13.5" = 1.2, "v0.14.1" = 2.8)) +
+  scale_linewidth_manual(values = c("v0.13.5" = 0.6, "v0.14.1" = 1.6)) +
+  facet_grid(algorithm ~ dataset, scales = "free_x") +
+  labs(
+    x = "Number of clusters", y = "ARI",
+    color = rsc_version_label, size = rsc_version_label,
+    linewidth = rsc_version_label
+  )
+```
+
+```{r hvg-files}
+files <- list.files(
+  "../data/out/datasets/datasets-r/dataset_name-sc-mix",
+  pattern = "\\.hvgs\\.tsv$", recursive = TRUE, full.names = TRUE
+)
+all_hvgs <- grep(
+  "d_cluster-0_filter-manual_method_name-.*_n_comp-30_n_hvg-1000_n_neig-20",
+  files,
+  value = TRUE
+)
+rapids_hvgs <- grep("rapids", all_hvgs, value = TRUE)
+other_hvgs <- setdiff(all_hvgs, rapids_hvgs)
+old_rapids <- grep("pipelines-py-old", rapids_hvgs, value = TRUE)
+new_rapids <- setdiff(rapids_hvgs, old_rapids)
+```
+
+```{r make-binary-df}
+get_method <- function(path) {
+  sub(".*method_name-([^_/]+)_n_comp.*", "\\1", path)
+}
+
+make_binary_df <- function(paths, labels = NULL) {
+  hvgs <- lapply(paths, \(p) unique(scan(p, what = "", quiet = TRUE)))
+  names(hvgs) <- labels
+
+  genes <- unique(unlist(hvgs, use.names = FALSE))
+  m <- matrix(
+    FALSE,
+    nrow = length(genes), ncol = length(hvgs),
+    dimnames = list(genes, names(hvgs))
+  )
+  for (i in seq_along(hvgs)) {
+    m[hvgs[[i]], i] <- TRUE
+  }
+
+  as.data.frame(m)
+}
+```
+
+```{r upset, fig.height=5, fig.width=8}
+all_paths <- c(old_rapids, new_rapids, other_hvgs)
+all_labels <- c(
+  "rapids_old", "rapids_new", vapply(other_hvgs, get_method, character(1))
+)
+
+all_df <- make_binary_df(all_paths, all_labels)
+head(all_df)
+
+p_upset <- upset(
+  all_df,
+  intersect = all_labels,
+  set_sizes = FALSE, sort_sets = FALSE,
+  base_annotations = list(
+    "Intersection size" = (
+      intersection_size(text = list(size = 2.8)) +
+        annotate(
+          geom = "richtext", x = Inf, y = Inf,
+          label = "n_hvg = **1000**<br />n_comp = **30**<br />n_neig = **20**",
+          vjust = 1, hjust = 1, label.color = NA
+        ) +
+        theme(
+          axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+          axis.title.x = element_blank()
+        )
+    )
+  ),
+  themes = list(default = theme_paper(base_size = 12))
+) + ylab("methods") + theme(
+  axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+  axis.title.x = element_blank()
+)
+
+p_upset
+```
+
+# Patchwork
+
+```{r supp3, fig.height=8.85, fig.width=6.69}
+(p_rsc / free(p_upset)) +
+  plot_layout(height = c(1, 1.5)) +
+  plot_annotation(tag_levels = "A")
+```

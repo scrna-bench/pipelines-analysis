@@ -1,8 +1,8 @@
 library(dplyr)
 library(tidyr)
 
-metrics <- readr::read_tsv("../data/metrics.tsv")
-timings <- readr::read_tsv("../data/timings.tsv")
+metrics <- readr::read_tsv("../data/out/report/metrics.tsv")
+timings <- readr::read_tsv("../data/out/report/timings.tsv")
 iliana <- readr::read_csv("../data/iliana.csv")
 
 keys_m <- names(metrics)[names(metrics) %in% names(timings)]
