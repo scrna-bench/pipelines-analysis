@@ -5,9 +5,17 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 cd "${ROOT_DIR}"
 
-export RMD_FIG_PATH="../out/figs/"
+DOCS=(
+  "analysis/fig1.Rmd"
+  "analysis/fig2.Rmd"
+  "analysis/supp1.Rmd"
+  "analysis/supp2.Rmd"
+  "analysis/supp3.Rmd"
+  "analysis/supp4.Rmd"
+)
 
-Rscript -e 'source("rv/scripts/activate.R"); rmarkdown::render("analysis/fig2.Rmd", output_dir = "out")'
-Rscript -e 'source("rv/scripts/activate.R"); rmarkdown::render("analysis/supp1.Rmd", output_dir = "out")'
-Rscript -e 'source("rv/scripts/activate.R"); rmarkdown::render("analysis/supp2.Rmd", output_dir = "out")'
-Rscript -e 'source("rv/scripts/activate.R"); rmarkdown::render("analysis/supp3.Rmd", output_dir = "out")'
+for doc in "${DOCS[@]}"; do
+  stem="${doc##*/}"; stem="${stem%.Rmd}"
+  RMD_FIG_PATH="../out/figs/" \
+    Rscript -e "source('rv/scripts/activate.R'); rmarkdown::render('${doc}', output_dir = 'out')"
+done
