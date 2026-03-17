@@ -13,245 +13,138 @@ library(dplyr)
 library(ggplot2)
 library(ggtext)
 library(patchwork)
-library(reshape2)
+library(tidyr)
 library(here)
-library(cowplot)
 library(magick)
 
 analysis_dir <- here("analysis")
 
-source(file.path(analysis_dir,"knitr.R"))
-source(file.path(analysis_dir,"theme.R"))
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
 theme_set(theme_paper(base_size = 12))
 ```
 
 ```{r load_data, include=FALSE}
-source(file.path(analysis_dir,"data.R"))
+source(file.path(analysis_dir, "data.R"))
 ```
 
 # Preliminaries
 
 ```{r prelim}
-my_pal <- c(
-  # Blue
-  "#C7DBF2",  # light blue
-  "#4C72B0",  # medium blue
-  "#234567",  # dark blue
-  
-  # Orange
-  "#FAD7B2",  # light orange
-  "#DD8452",  # medium orange
-  "#A15322",  # dark orange
-  
-  # Teal
-  "#BFE6E2",  # light teal
-  "#55A868",  # medium teal
-  "#1B6B4A"   # dark teal
+stage_cols <- c(
+  "#E07529FF", "#FAAE32FF", "#7F7991FF", "#A84A00FF", "#5D4F36FF", "#B39085FF"
 )
 
-my_pal_12 <- c(
-  # Blue (lightest → darkest)
-  "#D8E4F6",  # very light blue
-  "#A8C2E8",  # light blue
-  "#4C72B0",  # medium blue
-  "#1E3B5A",  # dark blue
-  
-  # Orange
-  "#FCE1C3",  # very light orange
-  "#F3B881",  # light orange
-  "#DD8452",  # medium orange
-  "#9B4A1C",  # dark orange
-  
-  # Teal
-  "#CDECE7",  # very light teal
-  "#93CEC2",  # light teal
-  "#55A868",  # medium teal
-  "#1A5B43"   # dark teal
-)
+metrics_new <- metrics_new %>%
+  mutate(
+    n_comp = as.factor(n_comp),
+    n_hvg = as.factor(n_hvg),
+    n_neig = as.factor(n_neig)
+  )
 
-timings$n_comp <- as.factor(timings$n_comp)
-timings$n_hvg <- as.factor(timings$n_hvg)
-timings$n_neig <- as.factor(timings$n_neig)
+timings_plot <- metrics_new %>%
+  rename_with(~ sub("^timings_", "", .x), starts_with("timings_"))
 
-timings$comps_hvgs <- as.factor(paste0(timings$n_comp,":",timings$n_hvg))
-timings$comps_neig <- as.factor(paste0(timings$n_comp,":",timings$n_neig))
+timings_m <- metrics_new %>%
+  pivot_longer(
+    cols = starts_with("timings_"),
+    names_to = "stage",
+    values_to = "value"
+  ) %>%
+  mutate(
+    stage = sub("^timings_", "", stage),
+    method_cluster = as.factor(paste0(method, ".", d_cluster))
+  )
 
+table(timings_m$method_cluster)
 
-colnames(timings) <- gsub("timings_","", colnames(timings))
-
-timings_m <- melt(timings %>% select(-comps_hvgs, -comps_neig), 
-                  id.vars = c("dataset", "method", "module", "filtering",
-                              "n_comp", "n_neig", "n_hvg", "d_cluster"))
-
-timings_m %>% filter(n_comp == 30, n_neig == 15, n_hvg==2000,
-                     dataset=="cb", method=="osca", filtering=="manual")
-
-
+timings_m_s <- timings_m %>%
+  filter(
+    filtering == "manual", n_comp == 20,
+    n_neig == 15, n_hvg == 2000,
+    !(stage %in% c("find_mit_gene", "filter", "t_sne", "louvain"))
+  )
+table(timings_m_s$method_cluster)
 ```
-
-
 
 # Timings figures
 
-```{r timings, fig.height=3.5, fig.width=8}
-
-ggplot(timings, aes(method, pca, colour=comps_hvgs)) + 
-  geom_point(position = position_jitterdodge(dodge.width = .85,
-                                             jitter.width = .15, 
-                                             jitter.height = 0)) +
-  facet_wrap(~dataset, scales = "free") +
-  scale_color_manual(values = my_pal) +
-  labs(color = "#comps:#hvgs") +
-  ylab("PCA time (s)") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        legend.text=element_text(size=8)) +
-  scale_y_log10()
-
-
-ggplot(timings, aes(method, leiden, colour=n_neig)) + 
-  geom_point(position = position_jitterdodge(dodge.width = .6,
-                                             jitter.width = .15, 
-                                             jitter.height = 0)) +
-  facet_wrap(~dataset, scales = "free") +
-  scale_color_manual(values = my_pal_12) +
-  ylab("Leiden time (s)") +
-  labs(color = "#neighbours") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        legend.text=element_text(size=8)) +
-  scale_y_log10()
-
-
-
-ggplot(timings, aes(method, umap, colour=n_comp)) + 
-  geom_point(position = position_jitterdodge(dodge.width = .6,
-                                             jitter.width = .15, 
-                                             jitter.height = 0)) +
-  facet_wrap(~dataset, scales = "free") +
-  scale_color_manual(values = my_pal[c(2,5,8)]) +
-  labs(color = "#comps") +
-  ylab("UMAP time (s)") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        legend.text=element_text(size=8)) +
-  scale_y_log10()
-
-
-
-
-timings_m$method_cluster <- as.factor(paste0(timings_m$method,".",timings_m$d_cluster))
-table(timings_m$method_cluster)
-
-timings_m_s <- timings_m %>% 
-  filter(filtering == "manual", n_comp == 20,
-         n_neig == 15, n_hvg==2000, module != "pipelines-py-old",
-         !(variable %in% c("find_mit_gene","filter","t_sne","leiden")))
-table(timings_m_s$method_cluster)
-
-
-ggplot(timings_m_s, 
-       aes(x = method_cluster, y = value, fill = variable)) +
-  geom_bar(position = "fill", stat = "identity") +
-  facet_wrap(~dataset, scales="free_y") +
-  scale_fill_manual(values = my_pal_12[c(1,5,9,2,6,10)]) +
-  ylab("Proportion of time") +
-  xlab("method-delta cluster number") +
-  # xlab("method-\u0394 cluster number") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 6),
-        legend.text=element_text(size=8))
-
-```
-
-
-# just one panel
-
-```{r timings-single-panels, fig.height=3.5, fig.width=4}
-
-panel_b <- ggplot(timings %>% filter(dataset=="cb"), aes(method, pca, colour=n_comp,
-                                                         shape=n_hvg)) + 
-  geom_point(position = position_jitterdodge(dodge.width = .85,
-                                             jitter.width = .15, 
-                                             jitter.height = 0),
-             size = .6) +
-  facet_wrap(~dataset, scales = "free") +
-  scale_color_manual(values = my_pal[c(2,5,8)]) +
-  scale_shape_manual(values = c(1,3,5,4)) +
-  # scale_color_manual(values = my_pal) +
-  labs(color = "#comps", shape = "#hvgs", x = element_blank()) +
-  ylab("PCA time (s)") +
-  #xlab("") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        legend.text=element_text(size=6), legend.key.size = unit(.5, "cm")) +
+```{r timings, fig.height=3.5, fig.width=4}
+panel_b <- ggplot(
+  timings_plot %>% filter(dataset == "cb"),
+  aes(method, pca, colour = n_comp, shape = n_hvg)
+) +
+  geom_point(
+    position = position_jitterdodge(
+      dodge.width = 1, jitter.width = .2
+    ), size = .6
+  ) +
+  scale_color_pca() +
+  scale_shape_manual(name = "HVGs", values = c(1, 3, 5)) +
+  ylab("PCA time <i>(s)</i>") +
+  xlab("") +
+  theme(
+    axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1)
+  ) +
   scale_y_log10()
 panel_b
 
-panel_c <- ggplot(timings %>% filter(dataset=="cb"), aes(method, umap, colour=n_comp)) + 
-  geom_point(position = position_jitterdodge(dodge.width = .6,
-                                             jitter.width = .15, 
-                                             jitter.height = 0),
-             size = .6) +
-  facet_wrap(~dataset, scales = "free") +
-  scale_color_manual(values = my_pal[c(2,5,8)]) +
-  ylab("UMAP time (s)") +
+panel_c <- ggplot(
+  timings_plot %>% filter(dataset == "cb"),
+  aes(method, umap, colour = n_comp)
+) +
+  geom_point(
+    position = position_jitterdodge(
+      dodge.width = .6, jitter.width = .15,
+    ), size = .6
+  ) +
+  scale_color_pca() +
+  ylab("UMAP time <i>(s)</i>") +
   xlab("") +
-  labs(color = "#comps") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        legend.text=element_text(size=6), legend.key.size = unit(.5, "cm"),
-        plot.margin = margin(0,0,0,0)) +
-  guides(shape = guide_legend(override.aes = list(size = 0.5))) +
+  theme(
+    axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
+  ) +
   scale_y_log10()
 panel_c
 
-
-# guides(shape = guide_legend(override.aes = list(size = 0.5))
-# panel_c + theme(legend.key.size = unit(.5, "cm"))
-
-panel_d <- ggplot(timings_m_s %>% filter(dataset=="cb"), 
-       aes(x = method_cluster, y = value, fill = variable)) +
+panel_d <- ggplot(
+  timings_m_s %>% filter(dataset == "cb"),
+  aes(x = d_cluster, y = value, fill = stage)
+) +
   geom_bar(position = "fill", stat = "identity") +
-  facet_wrap(~method, scales="free_x", nrow=1) +
-  scale_fill_manual(values = my_pal_12[c(1,5,9,2,6,10)]) +
+  facet_wrap(~method, scales = "free_x", nrow = 2) +
+  scale_fill_manual(
+    values = stage_cols,
+    labels = function(x) ifelse(x == "normalization", "norm.", x)
+  ) +
   ylab("Proportion of time") +
   xlab("method-delta cluster number") +
   xlab("") +
-  # xlab("method-\u0394 cluster number") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 6),
-        legend.text=element_text(size=6), legend.key.size = unit(.5, "cm"))
+  theme(
+    legend.position = c(0.99, 0.03),
+    legend.justification = c("right", "bottom")
+  )
 panel_d
-
 ```
-
-
 
 # Patchwork
 
-```{r fig1, fig.height=7, fig.width=10}
-layout_main <- "
-AAABB
-AAACC
-AAADD
-"
-
-# don't know why -- ggplot from SVG had missing text
-# svg_image <- image_read_svg("data/plan.svg")
-# svg_plot <- image_ggplot(svg_image)
-
+```{r fig1, fig.height=8.85, fig.width=6.69}
 png_image <- image_read(file.path(data_dir, "plan.png"))
 png_plot <- image_ggplot(png_image)
 
-# png_plot + panel_b
-# ggsave("this.pdf")
+left_panels <- (panel_b / panel_c) +
+  plot_layout(guides = "collect") &
+  theme(
+    legend.position = "bottom",
+    legend.box = "vertical", legend.box.just = "left",
+    legend.box.margin = margin_part(t = -10, l = -42, b = -10)
+  )
 
+lower_panels <- (left_panels | wrap_elements(full = panel_d)) +
+  plot_layout(widths = c(1, 1.4))
 
-p_main_panels <- png_plot + panel_b + panel_c + panel_d +
-  plot_layout(design = layout_main) +
+wrap_elements(full = png_plot) / lower_panels +
+  plot_layout(heights = c(1, 1.2)) +
   plot_annotation(tag_levels = "A")
-
-p_main_panels
-
 ```
