@@ -10,15 +10,19 @@ output:
 library(dplyr)
 library(ComplexUpset)
 library(ggplot2)
+library(here)
 library(patchwork)
 
-source("knitr.R")
-source("theme.R")
+analysis_dir <- here("analysis")
+data_dir <- here("data")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
 theme_set(theme_paper(base_size = 12))
 ```
 
 ```{r load_data, include=FALSE}
-source("data.R")
+source(file.path(analysis_dir, "data.R"))
 ```
 
 ```{r rapids-version-comparison, fig.height=4.5, fig.width=5}
@@ -48,12 +52,16 @@ p_rsc <- ggplot(
     x = "Number of clusters", y = "ARI",
     color = rsc_version_label, size = rsc_version_label,
     linewidth = rsc_version_label
+  ) +
+  theme(
+    legend.title = ggtext::element_markdown(),
+    legend.text = ggtext::element_markdown()
   )
 ```
 
 ```{r hvg-files}
 files <- list.files(
-  "../data/out/datasets/datasets-r/dataset_name-sc-mix",
+  file.path(data_dir, "out", "datasets", "datasets-r", "dataset_name-sc-mix"),
   pattern = "\\.hvgs\\.tsv$", recursive = TRUE, full.names = TRUE
 )
 all_hvgs <- grep(
@@ -108,7 +116,11 @@ p_upset <- upset(
       intersection_size(text = list(size = 2.8)) +
         annotate(
           geom = "richtext", x = Inf, y = Inf,
-          label = "n_hvg = **1000**<br />n_comp = **30**<br />n_neig = **20**",
+          label = paste(
+            "n_hvg = **1000**", "n_comp = **30**",
+            "n_neig = **20**", "d_cluster = **0**",
+            sep = "<br />"
+          ),
           vjust = 1, hjust = 1, label.color = NA
         ) +
         theme(
