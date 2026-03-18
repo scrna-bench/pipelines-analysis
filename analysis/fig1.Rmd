@@ -118,8 +118,7 @@ panel_d <- ggplot(
     labels = function(x) ifelse(x == "normalization", "norm.", x)
   ) +
   ylab("Proportion of time") +
-  xlab("method-delta cluster number") +
-  xlab("") +
+  xlab("Delta number of clusters") +
   theme(
     legend.position = c(0.99, 0.03),
     legend.justification = c("right", "bottom")
