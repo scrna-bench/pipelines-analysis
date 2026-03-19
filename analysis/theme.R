@@ -38,8 +38,8 @@ theme_paper <- function(base_size = 12, base_family = "sans") {
       panel.grid = element_blank(),
 
       # Spacing
-      panel.spacing = unit(8, "pt"),
-      plot.margin = margin(4, 4, 4, 4),
+      panel.spacing = unit(4, "pt"),
+      plot.margin = margin(2, 2, 2, 2),
 
       # Facets
       strip.background = element_blank(),
