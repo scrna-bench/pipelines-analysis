@@ -73,26 +73,22 @@ ari_vs_total_timing_top <- ari_vs_total_timing %>%
   ungroup() %>%
   select(-ari_p95)
 
-set.seed(20260318)
+set.seed(42)
 s <- sample(nrow(ari_vs_total_timing_top))
 
 p_ari_vs_total_timing <- ggplot(
-  ari_vs_total_timing_top[s,],
+  ari_vs_total_timing_top[s, ],
   aes(x = total_seconds, y = agree_ari_leiden, color = method)
 ) +
-  geom_point(data = ari_vs_total_timing,
-             alpha = 0.8, size = 1.8, colour="grey90") +
-  geom_point(alpha = 0.8, size = 2.8) +
-  facet_wrap(~dataset, scales = "free_x") +
-  # facet_wrap(~dataset, scales = "free") +
+  geom_point(
+    data = ari_vs_total_timing,
+    alpha = 0.8, size = 1.4, colour = "grey90"
+  ) +
+  geom_point(alpha = 0.8, size = 1.6) +
+  facet_wrap(~dataset, scales = "free") +
   scale_color_method(name = "Method") +
-  scale_x_log10(labels = label_number()) +
-  #ylim(0.5, 1.0) +
-  labs(
-    x = "Total timing <i>(s)</i>",
-    y = "Leiden ARI",
-    color = "Method"
-  )
+  scale_x_log10() +
+  labs(x = "Total timing <i>(s)</i>", y = "Leiden ARI", color = "Method")
 
 p_ari_vs_total_timing
 ```
@@ -150,7 +146,7 @@ p_iliana <- ggplot(compare_ari, aes(
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
   geom_point(alpha = 0.8) +
   labs(
-    x = "<i>Billato et al.</i> ARI", y = "Our 95<sup>th</sup> percentile ARI",
+    x = "<i>Billato et al.</i> ARI", y = "Our 95<sup>th</sup> %tile ARI",
     color = "Method"
   ) +
   coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
@@ -178,8 +174,7 @@ p_main_panels <- (
 ) +
   plot_layout(
     design = layout_main,
-    widths = c(0.90, 1.10),
-    heights = c(1.35, 1.35, 1.0),
+    heights = c(1.25, 1.25, 1.0),
     guides = "collect"
   ) +
   plot_annotation(tag_levels = "A") &
