@@ -62,7 +62,9 @@ timings_m_s <- timings_m %>%
   filter(
     filtering == "manual", n_comp == 20,
     n_neig == 15, n_hvg == 2000,
-    !(stage %in% c("find_mit_gene", "filter", "t_sne", "louvain"))
+    stage %in% c(
+      "gpu_load", "hvg", "normalization", "pca", "umap", "leiden"
+    )
   )
 table(timings_m_s$method_cluster)
 ```
@@ -115,12 +117,17 @@ panel_d <- ggplot(
   facet_wrap(~method, scales = "free_x", nrow = 2) +
   scale_fill_manual(
     values = stage_cols,
-    labels = function(x) ifelse(x == "normalization", "norm.", x)
+    labels = function(x) {
+      ifelse(
+        x == "normalization", "norm.",
+        ifelse(x == "gpu_load", "GPU load", x)
+      )
+    }
   ) +
   ylab("Proportion of time") +
   xlab("Delta number of clusters") +
   theme(
-    legend.position = c(0.99, 0.03),
+    legend.position = c(1, 0.03),
     legend.justification = c("right", "bottom")
   )
 panel_d
@@ -141,7 +148,7 @@ left_panels <- (panel_b / panel_c) +
   )
 
 lower_panels <- (left_panels | wrap_elements(full = panel_d)) +
-  plot_layout(widths = c(1, 1.4))
+  plot_layout(widths = c(1, 1.5))
 
 wrap_elements(full = png_plot) / lower_panels +
   plot_layout(heights = c(1, 1.2)) +
