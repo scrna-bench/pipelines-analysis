@@ -9,15 +9,18 @@ output:
 ```{r setup, include=FALSE}
 library(dplyr)
 library(ggplot2)
+library(here)
 library(patchwork)
 
-source("knitr.R")
-source("theme.R")
+analysis_dir <- here("analysis")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
 theme_set(theme_paper(base_size = 12))
 ```
 
 ```{r load_data, include=FALSE}
-source("data.R")
+source(file.path(analysis_dir, "data.R"))
 ```
 
 # Leiden v Louvain ARIs

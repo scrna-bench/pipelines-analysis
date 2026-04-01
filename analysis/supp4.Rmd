@@ -1,0 +1,127 @@
+---
+title: "Supplementary 4"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(here)
+
+analysis_dir <- here("analysis")
+data_dir <- here("data")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
+theme_set(theme_paper(base_size = 12))
+```
+
+This heatmap shows the correlation structure of PCA scores across methods for
+the `sc-mix` dataset using manual filtering, `n_comp = 30`, `n_hvg = 1000`,
+`n_neig = 20`, and `d_cluster = 0`.
+
+Rows and columns are ordered by method, then by PC, so the strongest
+within-method signal follows the main diagonal.
+
+```{r correlation-matrix}
+rapids_old_lab <- "rapids<br />**v0.13.5**"
+rapids_new_lab <- "rapids<br />**v0.14.1**"
+method_order <- c(
+  rapids_old_lab, rapids_new_lab, "scanpy", "osca", "scrapper", "seurat"
+)
+
+get_method <- function(path) {
+  method <- sub(".*method_name-([^_/]+)_n_comp.*", "\\1", path)
+  if (method == "rapids" && grepl("pipelines-py-old", path)) {
+    rapids_old_lab
+  } else if (method == "rapids") {
+    rapids_new_lab
+  } else {
+    method
+  }
+}
+
+paths <- list.files(
+  file.path(data_dir, "out", "datasets", "datasets-r", "dataset_name-sc-mix"),
+  pattern = "\\.pca\\.tsv$", recursive = TRUE, full.names = TRUE
+)
+paths <- grep(
+  "d_cluster-0_filter-manual_method_name-.*_n_comp-30_n_hvg-1000_n_neig-20",
+  paths,
+  value = TRUE
+)
+
+path_df <- data.frame(
+  path = paths,
+  method = vapply(paths, get_method, character(1))
+) %>%
+  filter(method %in% method_order) %>%
+  mutate(method = factor(method, levels = method_order)) %>%
+  arrange(method)
+
+pca_tables <- setNames(lapply(path_df$path, function(path) {
+  tbl <- readr::read_tsv(path, show_col_types = FALSE)
+  stopifnot(names(tbl)[1] == "cell_id")
+  tbl$cell_id <- as.character(tbl$cell_id)
+  tbl
+}), as.character(path_df$method))
+
+ref <- pca_tables[[1]]
+n_pcs <- ncol(ref) - 1
+
+stopifnot(all(vapply(pca_tables[-1], function(tbl) {
+  identical(tbl$cell_id, ref$cell_id) && identical(names(tbl), names(ref))
+}, logical(1))))
+
+pca_matrix <- do.call(cbind, lapply(pca_tables, function(tbl) as.matrix(tbl[-1])))
+
+cor_mat <- cor(pca_matrix, use = "pairwise.complete.obs")
+keep <- as.vector(!is.na(cor_mat))
+cor_df <- data.frame(
+  x_pos = as.vector(col(cor_mat))[keep],
+  y_pos = as.vector(row(cor_mat))[keep],
+  correlation = as.vector(cor_mat)[keep]
+)
+
+gap_size <- 2
+cor_df$x_pos <- cor_df$x_pos + ((cor_df$x_pos - 1) %/% n_pcs) * gap_size
+cor_df$y_pos <- cor_df$y_pos + ((cor_df$y_pos - 1) %/% n_pcs) * gap_size
+
+axis_labels <- names(pca_tables)
+method_breaks <- (seq_along(pca_tables) - 1) * (n_pcs + gap_size) + (n_pcs + 1) / 2
+plot_limit <- max(cor_df$x_pos) + 0.5
+```
+
+```{r supp4, fig.height=7, fig.width=6.69}
+ggplot(cor_df, aes(x = x_pos, y = y_pos, fill = correlation)) +
+  geom_tile(width = 1, height = 1) +
+  scale_fill_gradient2(
+    low = "#2B8CBE", mid = "#FFF7BC", high = "#D7301F",
+    midpoint = 0, limits = c(-1, 1), name = "correlation",
+    guide = guide_colorbar(
+      direction = "horizontal", title.position = "top",
+      barwidth = unit(2.8, "cm")
+    )
+  ) +
+  scale_x_continuous(
+    breaks = method_breaks, labels = axis_labels,
+    limits = c(0.5, plot_limit), expand = c(0, 0)
+  ) +
+  scale_y_reverse(
+    breaks = method_breaks, labels = axis_labels,
+    limits = c(plot_limit, 0.5), expand = c(0, 0)
+  ) +
+  coord_fixed() +
+  labs(x = NULL, y = NULL) +
+  theme(
+    axis.line = element_blank(),
+    axis.text.x.bottom = ggtext::element_markdown(),
+    axis.text.y.left = ggtext::element_markdown(),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5),
+    panel.grid = element_blank(),
+    legend.position = "bottom",
+  )
+```

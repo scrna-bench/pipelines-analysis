@@ -11,6 +11,8 @@ dependencies = [
   "ggtext",
   "ComplexUpset",
   "dplyr",
+  "here",
+  "magick",
   "readr",
   "tidyr",
   "rmarkdown",

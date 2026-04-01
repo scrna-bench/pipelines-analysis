@@ -8,6 +8,10 @@ met_cols <- c(
   seurat = "#abd878", scrapper = "#53b271", osca = "#043615",
   scanpy = "#fc8d59", rapids = "#d7301f"
 )
+# colours for different number of PCA components
+pca_cols <- c("#234567", "#A15322", "#1B6B4A")
+# colours for different number of neighbours in NN graph
+n_neig_cols <- c("#F1E6E1FF", "#BC927BFF", "#7E5945FF", "#2B1917FF")
 # ordering for datasets used
 dataset_levels <- c("sc-mix", "cb", "be1")
 
@@ -36,17 +40,17 @@ theme_paper <- function(base_size = 12, base_family = "sans") {
       panel.grid = element_blank(),
 
       # Spacing
-      panel.spacing = unit(8, "pt"),
-      plot.margin = margin(4, 4, 4, 4),
+      panel.spacing = unit(4, "pt"),
+      plot.margin = margin(2, 2, 2, 2),
 
       # Facets
       strip.background = element_blank(),
-      strip.text = element_text(face = "bold", size = base_size),
+      strip.text = element_markdown(face = "bold", size = base_size - 2),
 
       # Legend (works well both outside and embedded)
       legend.key = element_blank(),
-      legend.title = element_markdown(size = base_size),
-      legend.text = element_markdown(size = base_size - 1),
+      legend.title = element_text(size = base_size),
+      legend.text = element_text(size = base_size - 2),
       legend.spacing = unit(0, "pt"),
       legend.box.background = element_blank()
     )
@@ -58,4 +62,12 @@ scale_color_method <- function(...) {
 
 scale_fill_method <- function(...) {
   scale_fill_manual(values = met_cols, ...)
+}
+
+scale_color_pca <- function(...) {
+  scale_color_manual(..., name = "PCs", values = pca_cols)
+}
+
+scale_color_n_neig <- function(...) {
+  scale_color_manual(..., name = "Nghbrs", values = n_neig_cols)
 }

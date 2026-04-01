@@ -280,6 +280,15 @@ dependencies = [
 ]
 
 [[packages]]
+name = "here"
+version = "1.0.2"
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
+force_source = false
+dependencies = [
+    { name = "rprojroot", requirement = "(>= 2.1.0)" },
+]
+
+[[packages]]
 name = "highr"
 version = "0.12"
 source = { repository = "https://packagemanager.posit.co/cran/latest" }
@@ -384,6 +393,17 @@ force_source = false
 dependencies = [
     { name = "commonmark", requirement = "(>= 2.0.0)" },
     { name = "xfun", requirement = "(>= 0.55)" },
+]
+
+[[packages]]
+name = "magick"
+version = "2.9.1"
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
+force_source = false
+dependencies = [
+    { name = "Rcpp", requirement = "(>= 0.12.12)" },
+    "magrittr",
+    "curl",
 ]
 
 [[packages]]
@@ -545,6 +565,13 @@ dependencies = [
     { name = "xfun", requirement = "(>= 0.36)" },
     { name = "yaml", requirement = "(>= 2.1.19)" },
 ]
+
+[[packages]]
+name = "rprojroot"
+version = "2.1.1"
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
+force_source = false
+dependencies = []
 
 [[packages]]
 name = "sass"
