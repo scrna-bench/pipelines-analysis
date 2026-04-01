@@ -1,0 +1,57 @@
+---
+title: "Supplementary 6"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(patchwork)
+library(tidyr)
+library(here)
+
+analysis_dir <- here("analysis")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source(file.path(analysis_dir, "data.R"))
+```
+
+# Preliminaries
+
+```{r prelim}
+timings_summary <- metrics_new %>%
+  mutate(
+    n_comp = as.factor(n_comp), n_hvg = as.factor(n_hvg),
+    n_neig = as.factor(n_neig)
+  ) %>%
+  filter(filtering == "manual") %>%
+  pivot_longer(
+    cols = starts_with("timings_"), names_to = "stage", values_to = "seconds"
+  ) %>%
+  mutate(stage = sub("^timings_", "", stage)) %>%
+  group_by(dataset, method, stage) %>%
+  summarize(mean_seconds = mean(seconds, na.rm = TRUE), .groups = "drop")
+```
+
+# Timings summary
+
+```{r timings-summary, fig.height=8, fig.width=6.69}
+ggplot(timings_summary, aes(x = dataset, y = mean_seconds, fill = method)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~stage, scales = "free", ncol = 3) +
+  scale_fill_method(name = "Method") +
+  scale_y_continuous(labels = label_number()) +
+  labs(x = "Dataset", y = "Mean seconds", fill = "Method") +
+  theme(legend.position = "bottom")
+```

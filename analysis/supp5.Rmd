@@ -15,7 +15,6 @@ library(ggtext)
 library(patchwork)
 library(tidyr)
 library(here)
-library(magick)
 
 analysis_dir <- here("analysis")
 
