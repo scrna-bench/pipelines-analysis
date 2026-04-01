@@ -10,6 +10,8 @@ met_cols <- c(
 )
 # colours for different number of PCA components
 pca_cols <- c("#234567", "#A15322", "#1B6B4A")
+# colours for different number of neighbours in NN graph
+n_neig_cols <- c("#F1E6E1FF", "#BC927BFF", "#7E5945FF", "#2B1917FF")
 # ordering for datasets used
 dataset_levels <- c("sc-mix", "cb", "be1")
 
@@ -64,4 +66,8 @@ scale_fill_method <- function(...) {
 
 scale_color_pca <- function(...) {
   scale_color_manual(..., name = "PCs", values = pca_cols)
+}
+
+scale_color_n_neig <- function(...) {
+  scale_color_manual(..., name = "Nghbrs", values = n_neig_cols)
 }

@@ -12,6 +12,7 @@ DOCS=(
   "analysis/supp2.Rmd"
   "analysis/supp3.Rmd"
   "analysis/supp4.Rmd"
+  "analysis/supp5.Rmd"
 )
 
 for doc in "${DOCS[@]}"; do
