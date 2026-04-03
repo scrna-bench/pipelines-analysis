@@ -1,0 +1,30 @@
+name: Build container
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - rv.lock
+      - rproject.toml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: scrna-bench/containerize@main
+        id: build
+        with:
+          image-name: ghcr.io/scrna-bench/pipelines-analysis
+          image-tag: ${{ github.ref_name }}
+
+      - run: docker push ${{ steps.build.outputs.image }}
