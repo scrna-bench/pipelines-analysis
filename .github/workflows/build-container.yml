@@ -25,7 +25,10 @@ jobs:
       - uses: scrna-bench/containerize@main
         id: build
         with:
-          image-name: ghcr.io/scrna-bench/pipelines-analysis
+          namespace: scrna-bench
+          image-name: pipelines-analysis
           image-tag: ${{ github.ref_name }}
 
-      - run: docker push ${{ steps.build.outputs.image }}
+      - run: |
+          docker tag ${{ steps.build.outputs.image }} ghcr.io/${{ steps.build.outputs.image }}
+          docker push ghcr.io/${{ steps.build.outputs.image }}
