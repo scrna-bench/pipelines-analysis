@@ -1,5 +1,5 @@
 ---
-title: "Supplementary 3"
+title: "Supplementary: rapids-singlecell Version"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:

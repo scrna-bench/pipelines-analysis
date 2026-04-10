@@ -1,5 +1,5 @@
 ---
-title: "Supplementary 7"
+title: "Supplementary: ARI vs Parameters"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:

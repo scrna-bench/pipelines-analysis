@@ -1,5 +1,5 @@
 ---
-title: "Supplementary 4"
+title: "Supplementary: PCA Correlation"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
