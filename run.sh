@@ -6,15 +6,16 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${ROOT_DIR}"
 
 DOCS=(
-  "fig1.Rmd"
-  "fig2.Rmd"
-  "supp1.Rmd"
-  "supp2.Rmd"
-  "supp3.Rmd"
-  "supp4.Rmd"
-  "supp5.Rmd"
-  "supp6.Rmd"
-  "supp7.Rmd"
+  "fig-timings.Rmd"
+  "fig-ari.Rmd"
+  "supp-leiden-vs-louvain.Rmd"
+  "supp-ari-vs-clusters.Rmd"
+  "supp-rapids-version.Rmd"
+  "supp-pca-correlation.Rmd"
+  "supp-timings.Rmd"
+  "supp-timings-summary.Rmd"
+  "supp-ari-vs-params.Rmd"
+  "supp-linear-modelling.Rmd"
 )
 
 for doc in "${DOCS[@]}"; do
