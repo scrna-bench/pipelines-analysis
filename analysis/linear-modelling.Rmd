@@ -1,0 +1,141 @@
+---
+title: "Supplementary: Linear Modelling"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lmerTest)
+library(patchwork)
+library(here)
+
+analysis_dir <- here("analysis")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source(file.path(analysis_dir, "data.R"))
+```
+
+# Data preparation
+
+```{r prep}
+metrics_lm <- metrics_new %>%
+  mutate(
+    d_cluster = relevel(as.factor(d_cluster), ref = "0"),
+    n_comp = as.factor(n_comp),
+    n_neig = as.factor(n_neig),
+    n_hvg = as.factor(n_hvg)
+  )
+```
+
+# Linear models
+
+```{r linear-models}
+datasets <- levels(metrics_lm$dataset)
+lm_fits <- setNames(lapply(datasets, function(d) {
+  lm(
+    agree_ari_leiden ~ method + d_cluster + filtering + n_comp + n_neig + n_hvg,
+    data = metrics_lm %>% filter(dataset == d)
+  )
+}), datasets)
+
+lapply(lm_fits, summary)
+```
+
+# Coefficients
+
+```{r coefficients, fig.height=5, fig.width=6.69}
+assign_grp <- function(nms) {
+  grp <- gsub("[0-9]", "", nms)
+  grp <- gsub("-", "", grp)
+  grp[grep("method", grp)] <- "method"
+  grp[grep("filtering", grp)] <- "filtering"
+  grp[grp == "(Intercept)"] <- "Intercept"
+  factor(grp, levels = c(
+    "Intercept", "method", "d_cluster", "filtering", "n_comp", "n_neig", "n_hvg"
+  ))
+}
+
+coefs_m <- bind_rows(
+  lapply(lm_fits, function(fit) {
+    data.frame(
+      grp = assign_grp(names(coef(fit))), value = coef(fit),
+      t_value = summary(fit)$coefficients[, "t value"]
+    )
+  }),
+  .id = "dataset"
+) %>%
+  mutate(
+    dataset     = factor(dataset, levels = datasets),
+    Baseline    = if_else(grp == "Intercept", "Absolute", "Relative"),
+    significant = if_else(abs(t_value) >= 2.5, "yes", "no")
+  )
+
+p1 <- ggplot(
+  coefs_m, aes(grp, value,
+    colour = dataset, shape = significant, size = significant, group = dataset
+  )
+) +
+  geom_point(position = position_dodge(width = 0.45), alpha = 0.9) +
+  scale_color_dataset(
+    name = "Dataset",
+    guide = guide_legend(override.aes = list(shape = 19, size = 3))
+  ) +
+  scale_shape_manual(values = c(no = 21, yes = 19), guide = "none") +
+  scale_size_manual(values = c(no = 1.5, yes = 3), guide = "none") +
+  facet_wrap(~Baseline, scales = "free", space = "free_x") +
+  labs(x = "Parameter group", y = "Coefficient")
+p1
+```
+
+# Mixed effects models
+
+```{r mixed-effects}
+lmer_fits <- setNames(lapply(datasets, function(d) {
+  lmer(
+    agree_ari_leiden ~ (1 | d_cluster) + (1 | filtering) +
+      (1 | n_comp) + (1 | n_neig) + (1 | n_hvg) + (1 | method),
+    data = metrics_lm %>% filter(dataset == d)
+  )
+}), datasets)
+```
+
+# Variance components
+
+```{r variance-components, fig.height=3, fig.width=6.69}
+get_varcomps <- function(m, label) {
+  as.data.frame(VarCorr(m)) %>%
+    select(grp, vcov) %>%
+    mutate(vcov = vcov / sum(vcov), dataset = factor(label, levels = datasets))
+}
+
+vp <- mapply(get_varcomps, lmer_fits, datasets, SIMPLIFY = FALSE) %>%
+  bind_rows() %>%
+  mutate(grp = factor(grp, levels = c(
+    "Intercept", "method", "d_cluster", "filtering",
+    "n_comp", "n_neig", "n_hvg", "Residual"
+  )))
+
+p2 <- ggplot(vp, aes(grp, vcov, fill = dataset)) +
+  geom_col(position = "dodge") +
+  scale_fill_dataset(name = "Dataset") +
+  labs(x = "Parameter group", y = "% variance explained")
+p2
+```
+
+# Patchwork
+
+```{r linear-modelling, fig.height=8, fig.width=6.69}
+(p1 / p2) +
+  plot_layout(heights = c(1.5, 1), guides = "collect") &
+  theme(legend.position = "bottom") &
+  guides(fill = "none")
+```

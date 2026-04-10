@@ -33,7 +33,7 @@ metrics_all <- metrics_all %>%
     n_comp = as.integer(n_comp),
     n_neig = as.integer(n_neig),
     n_hvg = as.integer(n_hvg),
-    dataset = factor(dataset, levels = dataset_levels),
+    dataset = factor(dataset, levels = names(dataset_cols)),
     method = factor(method, levels = names(met_cols)),
     filtering = as.factor(filtering),
     module = as.factor(module)
