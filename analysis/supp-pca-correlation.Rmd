@@ -95,7 +95,7 @@ method_breaks <- (seq_along(pca_tables) - 1) * (n_pcs + gap_size) + (n_pcs + 1) 
 plot_limit <- max(cor_df$x_pos) + 0.5
 ```
 
-```{r supp4, fig.height=7, fig.width=6.69}
+```{r supp-pca-correlation, fig.height=7, fig.width=6.69}
 ggplot(cor_df, aes(x = x_pos, y = y_pos, fill = correlation)) +
   geom_tile(width = 1, height = 1) +
   scale_fill_gradient2(

@@ -99,7 +99,7 @@ p_umap
 
 # Patchwork
 
-```{r supp5, fig.height=8.85, fig.width=6.69}
+```{r supp-timings-breakdown, fig.height=8.85, fig.width=6.69}
 (p_pca / p_umap / p_leiden) +
   plot_layout(guides = "collect") +
   plot_annotation(tag_levels = "A") & theme(

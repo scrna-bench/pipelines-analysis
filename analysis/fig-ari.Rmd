@@ -159,7 +159,7 @@ p_iliana
 
 # Patchwork
 
-```{r fig2, fig.height=7.6, fig.width=6.69}
+```{r fig-ari, fig.height=7.6, fig.width=6.69}
 layout_main <- "
 AA
 BB

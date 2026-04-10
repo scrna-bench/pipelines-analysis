@@ -46,7 +46,7 @@ timings_summary <- metrics_new %>%
 
 # Timings summary
 
-```{r timings-summary, fig.height=8, fig.width=6.69}
+```{r supp-timings-summary, fig.height=8, fig.width=6.69}
 ggplot(timings_summary, aes(x = dataset, y = mean_seconds, fill = method)) +
   geom_col(position = "dodge") +
   facet_wrap(~stage, scales = "free", ncol = 3) +

@@ -140,7 +140,7 @@ p_upset
 
 # Patchwork
 
-```{r supp3, fig.height=8.85, fig.width=6.69}
+```{r supp-rapids-version, fig.height=8.85, fig.width=6.69}
 (p_rsc / free(p_upset)) +
   plot_layout(height = c(1, 1.5)) +
   plot_annotation(tag_levels = "A")

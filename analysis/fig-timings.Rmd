@@ -135,7 +135,7 @@ panel_d
 
 # Patchwork
 
-```{r fig1, fig.height=8.85, fig.width=6.69}
+```{r fig-timings, fig.height=8.85, fig.width=6.69}
 png_image <- image_read(file.path(data_dir, "plan.png"))
 png_plot <- image_ggplot(png_image)
 
