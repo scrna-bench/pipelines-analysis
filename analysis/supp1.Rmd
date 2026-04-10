@@ -41,7 +41,7 @@ p_ari_leiden_vs_louvain <- ggplot(
   geom_point(alpha = 0.8, size = 1.2) +
   coord_equal(xlim = lims, ylim = lims) +
   scale_color_method(name = "Method") +
-  scale_shape_discrete(name = "Dataset", limits = dataset_levels) +
+  scale_shape_discrete(name = "Dataset", limits = names(dataset_cols)) +
   labs(
     x = "**Louvain** ARI",
     y = "**Leiden** ARI",

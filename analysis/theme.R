@@ -12,8 +12,8 @@ met_cols <- c(
 pca_cols <- c("#234567", "#A15322", "#1B6B4A")
 # colours for different number of neighbours in NN graph
 n_neig_cols <- c("#F1E6E1FF", "#BC927BFF", "#7E5945FF", "#2B1917FF")
-# ordering for datasets used
-dataset_levels <- c("sc-mix", "cb", "be1")
+# colours for datasets used
+dataset_cols <- c("sc-mix" = "#4E79A7", cb = "#F28E2B", be1 = "#E15759")
 
 theme_paper <- function(base_size = 12, base_family = "sans") {
   theme_minimal(base_size = base_size, base_family = base_family) %+replace%
@@ -57,11 +57,11 @@ theme_paper <- function(base_size = 12, base_family = "sans") {
 }
 
 scale_color_method <- function(...) {
-  scale_color_manual(values = met_cols, ...)
+  scale_color_manual(..., values = met_cols)
 }
 
 scale_fill_method <- function(...) {
-  scale_fill_manual(values = met_cols, ...)
+  scale_fill_manual(..., values = met_cols)
 }
 
 scale_color_pca <- function(...) {
@@ -70,4 +70,12 @@ scale_color_pca <- function(...) {
 
 scale_color_n_neig <- function(...) {
   scale_color_manual(..., name = "Nghbrs", values = n_neig_cols)
+}
+
+scale_color_dataset <- function(...) {
+  scale_color_manual(..., values = dataset_cols)
+}
+
+scale_fill_dataset <- function(...) {
+  scale_fill_manual(..., values = dataset_cols)
 }

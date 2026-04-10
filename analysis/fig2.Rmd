@@ -126,7 +126,7 @@ compare_ari <- p_ari %>%
   mutate(
     method = factor(method, levels = names(met_cols)),
     best_for = factor(as.character(best_for), levels = c("leiden", "louvain")),
-    dataset = factor(dataset, levels = dataset_levels)
+    dataset = factor(dataset, levels = names(dataset_cols))
   ) %>%
   arrange(method, dataset, best_for)
 
