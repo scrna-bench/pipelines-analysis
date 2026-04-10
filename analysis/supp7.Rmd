@@ -1,0 +1,76 @@
+---
+title: "Supplementary 7"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(patchwork)
+library(tidyr)
+library(here)
+
+analysis_dir <- here("analysis")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source(file.path(analysis_dir, "data.R"))
+```
+
+# ARI v params
+
+```{r ari-vs-params, fig.height=8, fig.width=6.69}
+plot_df <- metrics_new %>% filter(filtering == "manual", d_cluster == 0)
+
+make_param_plot <- function(df, x_col, group_cols, x_label) {
+  df_plot <- df %>%
+    mutate(
+      path_group = interaction(across(all_of(group_cols)), drop = TRUE)
+    ) %>%
+    arrange(dataset, method, path_group, .data[[x_col]])
+
+  pos <- position_dodge(width = 0.5)
+
+  ggplot(
+    df_plot, aes(
+      x = as.factor(.data[[x_col]]), y = agree_ari_leiden,
+      group = path_group, color = method
+    )
+  ) +
+    geom_point(position = pos, size = 0.9, alpha = 0.5) +
+    geom_line(position = pos, linewidth = 0.7, alpha = 0.5) +
+    facet_wrap(~dataset, scales = "free_y") +
+    scale_color_method(name = "Method") +
+    labs(x = x_label, y = "ARI - Leiden", color = "Method")
+}
+
+p_n_comp <- make_param_plot(
+  plot_df, "n_comp",
+  c("dataset", "method", "filtering", "n_neig", "n_hvg"),
+  "n_comp"
+)
+p_n_neig <- make_param_plot(
+  plot_df, "n_neig",
+  c("dataset", "method", "filtering", "n_comp", "n_hvg"),
+  "n_neig"
+)
+p_n_hvg <- make_param_plot(
+  plot_df, "n_hvg",
+  c("dataset", "method", "filtering", "n_comp", "n_neig"),
+  "n_hvg"
+)
+
+(p_n_comp / p_n_neig / p_n_hvg) +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = "A") & theme(legend.position = "bottom")
+```
