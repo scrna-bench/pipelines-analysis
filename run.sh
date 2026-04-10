@@ -12,7 +12,7 @@ DOCS=(
   "supp-ari-vs-clusters.Rmd"
   "supp-rapids-version.Rmd"
   "supp-pca-correlation.Rmd"
-  "supp-timings.Rmd"
+  "supp-timings-breakdown.Rmd"
   "supp-timings-summary.Rmd"
   "supp-ari-vs-params.Rmd"
   "supp-linear-modelling.Rmd"
