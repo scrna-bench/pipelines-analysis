@@ -1,0 +1,16 @@
+dataset,method,agree_ari_leiden,agree_ari_louvain
+be1,seurat,0.6812,0.6716
+be1,osca,0.95488,0.9679
+be1,scanpy,0.6833,0.6842
+be1,rapids,0.6843,0.6835
+be1,scrapper,0.9691,0.9705
+cb,seurat,0.865,0.876
+cb,osca,0.80774,0.80782
+cb,scanpy,0.747,0.7542
+cb,rapids,0.7734,0.7752
+cb,scrapper,0.8065,0.8019
+sc-mix,seurat,0.9788,0.9795
+sc-mix,osca,0.9629,0.9629
+sc-mix,scanpy,0.9893,0.9892
+sc-mix,rapids,0.9865,0.9856
+sc-mix,scrapper,0.9634,0.9629
