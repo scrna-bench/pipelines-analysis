@@ -6,7 +6,7 @@ data_dir <- here("data")
 
 metrics <- readr::read_tsv(file.path(data_dir, "out", "report", "metrics.tsv"))
 timings <- readr::read_tsv(file.path(data_dir, "out", "report", "timings.tsv"))
-iliana <- readr::read_csv(file.path(data_dir, "iliana.csv"))
+billato <- readr::read_csv(file.path(data_dir, "billato.csv"))
 
 keys_m <- names(metrics)[names(metrics) %in% names(timings)]
 keys_t <- names(timings)[names(timings) %in% names(metrics)]
