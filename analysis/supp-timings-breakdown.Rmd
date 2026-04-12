@@ -105,5 +105,8 @@ p_umap
   plot_annotation(tag_levels = "A") & theme(
   legend.position = "bottom", legend.box = "vertical", legend.box.just = "left",
   legend.margin = margin_part(t = -8)
+) & guides(
+  colour = guide_legend(override.aes = list(size = 2)),
+  shape  = guide_legend(override.aes = list(size = 2))
 )
 ```

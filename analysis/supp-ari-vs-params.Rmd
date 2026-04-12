@@ -72,5 +72,6 @@ p_n_hvg <- make_param_plot(
 
 (p_n_comp / p_n_neig / p_n_hvg) +
   plot_layout(guides = "collect") +
-  plot_annotation(tag_levels = "A") & theme(legend.position = "bottom")
+  plot_annotation(tag_levels = "A") & theme(legend.position = "bottom") &
+  guides(colour = guide_legend(override.aes = list(size = 2)))
 ```
