@@ -83,7 +83,7 @@ keep <- as.vector(!is.na(cor_mat))
 cor_df <- data.frame(
   x_pos = as.vector(col(cor_mat))[keep],
   y_pos = as.vector(row(cor_mat))[keep],
-  correlation = as.vector(cor_mat)[keep]
+  correlation = abs(as.vector(cor_mat)[keep])
 )
 
 gap_size <- 2
@@ -98,12 +98,12 @@ plot_limit <- max(cor_df$x_pos) + 0.5
 ```{r supp-pca-correlation, fig.height=7, fig.width=6.69}
 ggplot(cor_df, aes(x = x_pos, y = y_pos, fill = correlation)) +
   geom_tile(width = 1, height = 1) +
-  scale_fill_gradient2(
-    low = "#2B8CBE", mid = "#FFF7BC", high = "#D7301F",
-    midpoint = 0, limits = c(-1, 1), name = "correlation",
+  scale_fill_gradient(
+    low = "#FFF7BC", high = "#D7301F",
+    limits = c(0, 1), name = "abs. correlation",
     guide = guide_colorbar(
       direction = "horizontal", title.position = "top",
-      barwidth = unit(2.8, "cm")
+      barwidth = unit(3.2, "cm")
     )
   ) +
   scale_x_continuous(
