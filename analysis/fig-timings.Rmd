@@ -144,7 +144,11 @@ left_panels <- (panel_b / panel_c) +
   theme(
     legend.position = "bottom",
     legend.box = "vertical", legend.box.just = "left",
-    legend.box.margin = margin_part(t = -10, l = -42, b = -10)
+    legend.margin = margin_part(t = -8, l = -42)
+  ) &
+  guides(
+    colour = guide_legend(override.aes = list(size = 1.5)),
+    shape = guide_legend(override.aes = list(size = 1.5))
   )
 
 lower_panels <- (left_panels | wrap_elements(full = panel_d)) +
