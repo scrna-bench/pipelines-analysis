@@ -31,23 +31,30 @@ source(file.path(analysis_dir, "data.R"))
 ```{r ari-leiden-vs-clusters-group-paths, fig.height=5, fig.width=9}
 ari_leiden_paths <- metrics_new %>%
   filter(filtering == "manual") %>%
-  mutate(
-    group_path = paste(dataset, method, n_comp, n_neig, n_hvg, sep = "-")
-  ) %>%
-  arrange(dataset, method, group_path, n_clusters_leiden)
+  group_by(dataset, method, d_cluster) %>% # or n_clusters_leiden
+  summarise(ari_median = median(agree_ari_leiden, na.rm = TRUE),
+            ari_q25 = quantile(agree_ari_leiden, 0.25, na.rm = TRUE),
+            ari_q75 = quantile(agree_ari_leiden, 0.75, na.rm = TRUE))
 
 p_ari_leiden_paths <- ggplot(
-  ari_leiden_paths,
+  ari_leiden_paths, 
   aes(
-    x = n_clusters_leiden, y = agree_ari_leiden,
-    group = group_path, color = method
+    x = d_cluster, y = ari_median, # or n_clusters_leiden
+    color = method, fill = method, group = method
   )
 ) +
-  geom_line(linewidth = 0.8, alpha = 0.4) +
-  facet_wrap(~dataset, scales = "free") +
+  geom_ribbon(
+    aes(ymin = ari_q25, ymax = ari_q75),
+    alpha = 0.18, linewidth = 0,
+    show.legend = FALSE
+  ) +
+  geom_line(linewidth = 0.8) +
+  # geom_point(size = 1.5) + # optional
+  facet_wrap(~dataset, scales = "free_x") +
   scale_color_method(name = "Method") +
+  scale_fill_method(name = "Method") +
   labs(
-    x = "Number of clusters - Leiden", y = "ARI - Leiden",
+    x = "Delta number of clusters", y = "ARI (Leiden)",
     color = "Method"
   )
 
@@ -82,13 +89,13 @@ p_ari_vs_total_timing <- ggplot(
 ) +
   geom_point(
     data = ari_vs_total_timing,
-    alpha = 0.8, size = 1.4, colour = "grey90"
+    alpha = 0.75, size = 1.4, colour = "grey95"
   ) +
   geom_point(alpha = 0.8, size = 1.6) +
-  facet_wrap(~dataset, scales = "free") +
+  facet_wrap(~dataset, scales = "free_x") +
   scale_color_method(name = "Method") +
   scale_x_log10() +
-  labs(x = "Total timing <i>(s)</i>", y = "Leiden ARI", color = "Method")
+  labs(x = "Total timing <i>(s)</i>", y = "ARI (Leiden)", color = "Method")
 
 p_ari_vs_total_timing
 ```
@@ -141,18 +148,24 @@ ari_limits_p95 <- range(
 
 p_billato <- ggplot(compare_ari, aes(
   x = billato_ari, y = our_ari,
-  color = method, size = best_for, shape = dataset
-)) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-  geom_point(alpha = 0.8) +
-  labs(
-    x = "<i>Billato et al.</i> ARI", y = "Our 95<sup>th</sup> %tile ARI",
-    color = "Method"
-  ) +
-  coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
-  scale_color_method(name = "Method") +
-  scale_shape_discrete(name = "Dataset") +
-  scale_size_manual(name = "Algorithm", values = c(leiden = 2.5, louvain = 1.5))
+  fill = method, size = best_for, shape = dataset
+  )) +
+    geom_abline(slope = 1, intercept = 0, 
+                linetype = "dashed", color = "grey50") +
+    geom_point(alpha = 0.65, color = "black") +
+    labs(x = "<i>Billato et al.</i> ARI",
+         y = "Our 95<sup>th</sup> %tile ARI",
+         fill = "Method"
+    ) +
+    coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
+    scale_fill_method(name = "Method") +
+    scale_shape_manual(name = "Dataset", values = c(21, 22, 24, 25)) +
+    scale_size_manual(name = "Algorithm", values = c(leiden = 3.5, louvain = 2)) +
+    guides(
+        fill = guide_legend(override.aes = list(shape = 21, size = 4)),
+        shape = guide_legend(override.aes = list(size = 4, fill = "grey80")),
+        size = guide_legend(override.aes = list(shape = 21, fill = "grey80"))
+    )
 
 p_billato
 ```
