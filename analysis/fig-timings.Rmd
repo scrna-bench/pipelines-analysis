@@ -209,7 +209,7 @@ panel_d
 # Patchwork
 
 ```{r fig-timings, fig.height=8.85, fig.width=6.69}
-png_image <- image_read(file.path(data_dir, "plan.png"))
+png_image <- image_read(file.path(data_dir, "plan_alt2.png"))
 png_plot <- image_ggplot(png_image)
 
 wrap_elements(full = png_plot) / ((panel_a | panel_b | panel_c) / panel_d) +
