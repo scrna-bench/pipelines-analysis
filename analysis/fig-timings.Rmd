@@ -32,7 +32,7 @@ source(file.path(analysis_dir, "data.R"))
 
 ```{r prelim}
 stage_cols <- c(
-  "#E07529FF", "#FAAE32FF", "#7F7991FF", "#A84A00FF", "#5D4F36FF", "#B39085FF"
+  "#77AADD", "#EE8866", "#EEDD88", "#FFAABB", "#99DDFF", "#44BB99"
 )
 
 metrics_new <- metrics_new %>%
@@ -72,41 +72,111 @@ table(timings_m_s$method_cluster)
 # Timings figures
 
 ```{r timings, fig.height=3.5, fig.width=4}
-panel_b <- ggplot(
-  timings_plot %>% filter(dataset == "cb"),
-  aes(method, pca, colour = n_comp, shape = n_hvg)
+
+timings_plot$gpu_load[is.na(timings_plot$gpu_load)] <- 0
+
+timings_total <- timings_plot %>%
+  filter(dataset == "cb") %>%
+  group_by(method, n_comp, n_hvg) %>%
+  summarise(
+    total_time = median(gpu_load + hvg + pca + umap + leiden, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+panel_a <- ggplot(
+    timings_plot %>% filter(dataset == "cb"),
+    aes(x = method, y = gpu_load + hvg + pca + umap + leiden)
 ) +
-  geom_point(
-    position = position_jitterdodge(
-      dodge.width = 1, jitter.width = .2
-    ), size = .6
-  ) +
-  scale_color_pca() +
-  scale_shape_manual(name = "HVGs", values = c(1, 3, 5)) +
-  ylab("PCA time <i>(s)</i>") +
-  xlab("") +
-  theme(
-    axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1)
-  ) +
-  scale_y_log10()
+    geom_boxplot(
+        aes(group = method),
+        width = 0.6, outlier.shape = NA,
+        fill = "grey95", colour = "grey40"
+    ) +
+    geom_point(
+        data = timings_total,
+        aes(x = method, y = total_time, colour = n_comp, shape = n_hvg),
+        position = position_jitter(width = 0.15, height = 0),
+        size = 2
+    ) +
+    scale_color_pca() +
+    scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
+    ylab("Total pipeline time <i>(s)</i>") +
+    xlab("") +
+    theme(
+        axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
+        legend.position = "none"
+    ) +
+    scale_y_sqrt()
+panel_a
+
+
+timings_pca <- timings_plot %>%
+  filter(dataset == "cb") %>%
+  group_by(method, n_comp, n_hvg) %>%
+  summarise(
+    pca = median(pca, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+panel_b <- ggplot(
+    timings_plot %>% filter(dataset == "cb"),
+    aes(x = method, y = pca)
+) +
+    geom_boxplot(
+        aes(group = method),
+        width = 0.6, outlier.shape = NA,
+        fill = "grey95", colour = "grey40"
+    ) +
+    geom_point(
+        data = timings_pca,
+        aes(x = method, y = pca, colour = n_comp, shape = n_hvg),
+        position = position_jitter(width = 0.15, height = 0),
+        size = 2
+    ) +
+    scale_color_pca() +
+    scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
+    ylab("PCA time <i>(s)</i>") +
+    xlab("") +
+    theme(
+        axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
+        legend.position = "bottom",
+        legend.spacing.x = unit(0.2, "cm"),
+        legend.margin = margin(t = 2, b = 2)
+    ) +
+    scale_y_sqrt()
 panel_b
 
+timings_umap <- timings_plot %>%
+  filter(dataset == "cb") %>%
+  group_by(method, n_comp) %>%
+  summarise(
+    umap = median(umap, na.rm = TRUE),
+    .groups = "drop"
+  )
+
 panel_c <- ggplot(
-  timings_plot %>% filter(dataset == "cb"),
-  aes(method, umap, colour = n_comp)
+    timings_plot %>% filter(dataset == "cb"),
+    aes(x = method, y = umap)
 ) +
-  geom_point(
-    position = position_jitterdodge(
-      dodge.width = .6, jitter.width = .15,
-    ), size = .6
-  ) +
-  scale_color_pca() +
-  ylab("UMAP time <i>(s)</i>") +
-  xlab("") +
-  theme(
-    axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
-  ) +
-  scale_y_log10()
+    geom_boxplot(
+        aes(group = method),
+        width = 0.6, outlier.shape = NA,
+        fill = "grey95", colour = "grey40"
+    ) +
+    geom_point(
+        data = timings_umap,
+        aes(x = method, y = umap, colour = n_comp),
+        position = position_jitter(width = 0.15, height = 0),
+        size = 2, alpha = 0.75
+    ) +
+    scale_color_pca() +
+    ylab("UMAP time <i>(s)</i>") +
+    xlab("") +
+    theme(
+        axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
+        legend.position = "none"
+    ) +
+    scale_y_sqrt()
 panel_c
 
 panel_d <- ggplot(
@@ -114,7 +184,7 @@ panel_d <- ggplot(
   aes(x = d_cluster, y = value, fill = stage)
 ) +
   geom_bar(position = "fill", stat = "identity") +
-  facet_wrap(~method, scales = "free_x", nrow = 2) +
+  facet_wrap(~method, scales = "free_x", nrow = 1) +
   scale_fill_manual(
     values = stage_cols,
     labels = function(x) {
@@ -127,34 +197,22 @@ panel_d <- ggplot(
   ylab("Proportion of time") +
   xlab("Delta number of clusters") +
   theme(
-    legend.position = c(1, 0.03),
-    legend.justification = c("right", "bottom")
-  )
+    legend.position = "bottom",
+    legend.box = "vertical",
+    legend.spacing.x = unit(0.2, "cm"),
+    legend.margin = margin(t = 2, b = 2)
+  ) +
+  guides(fill=guide_legend(nrow=1))
 panel_d
 ```
 
 # Patchwork
 
 ```{r fig-timings, fig.height=8.85, fig.width=6.69}
-png_image <- image_read(file.path(data_dir, "plan.png"))
+png_image <- image_read(file.path(data_dir, "plan_alt2.png"))
 png_plot <- image_ggplot(png_image)
 
-left_panels <- (panel_b / panel_c) +
-  plot_layout(guides = "collect") &
-  theme(
-    legend.position = "bottom",
-    legend.box = "vertical", legend.box.just = "left",
-    legend.margin = margin_part(t = -8, l = -42)
-  ) &
-  guides(
-    colour = guide_legend(override.aes = list(size = 1.5)),
-    shape = guide_legend(override.aes = list(size = 1.5))
-  )
-
-lower_panels <- (left_panels | wrap_elements(full = panel_d)) +
-  plot_layout(widths = c(1, 1.5))
-
-wrap_elements(full = png_plot) / lower_panels +
-  plot_layout(heights = c(1, 1.2)) +
+wrap_elements(full = png_plot) / ((panel_a | panel_b | panel_c) / panel_d) +
+  plot_layout(heights = c(1, 1.5)) +
   plot_annotation(tag_levels = "A")
 ```

@@ -4,16 +4,19 @@ library(grid)
 library(scales)
 
 # colour used for different pipelines
+### Pauline: I find that these colors are easier to distinguish,
+
 met_cols <- c(
-  seurat = "#abd878", scrapper = "#53b271", osca = "#043615",
-  scanpy = "#fc8d59", rapids = "#d7301f"
+  seurat = "#009988", scrapper = "#33BBEE", osca = "#0077BB",  
+  scanpy = "#EE7733", rapids = "#CC3311"   
 )
+
 # colours for different number of PCA components
-pca_cols <- c("#234567", "#A15322", "#1B6B4A")
+pca_cols <- c("#FFB000", "#FE6100", "#DC267F")
 # colours for different number of neighbours in NN graph
 n_neig_cols <- c("#F1E6E1FF", "#BC927BFF", "#7E5945FF", "#2B1917FF")
 # colours for datasets used
-dataset_cols <- c("sc-mix" = "#4E79A7", cb = "#F28E2B", be1 = "#E15759")
+dataset_cols <- c("sc-mix" = "#1E88E5", cb = "#FFC107", be1 = "#D81B60")
 
 theme_paper <- function(base_size = 12, base_family = "sans") {
   theme_minimal(base_size = base_size, base_family = base_family) %+replace%
