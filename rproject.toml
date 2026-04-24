@@ -18,4 +18,5 @@ dependencies = [
   "tidyr",
   "rmarkdown",
   "patchwork",
+    "pheatmap",
 ]

@@ -118,15 +118,20 @@ billato_long <- billato %>%
 p_ari <- metrics_new %>%
   group_by(dataset, method) %>%
   summarize(
-    leiden = quantile(agree_ari_leiden, probs = 0.95, na.rm = TRUE),
-    louvain = quantile(agree_ari_louvain, probs = 0.95, na.rm = TRUE),
+    leiden.95 = quantile(agree_ari_leiden, probs = 0.95, na.rm = TRUE),
+    louvain.95 = quantile(agree_ari_louvain, probs = 0.95, na.rm = TRUE),
+    leiden.05 = quantile(agree_ari_leiden, probs = 0.05, na.rm = TRUE),
+    louvain.05 = quantile(agree_ari_louvain, probs = 0.05, na.rm = TRUE),
+    leiden.50 = quantile(agree_ari_leiden, probs = 0.5, na.rm = TRUE),
+    louvain.50 = quantile(agree_ari_louvain, probs = 0.5, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   pivot_longer(
-    cols = c(leiden, louvain),
-    names_to = "best_for", values_to = "our_ari"
+    cols = c(leiden.05, louvain.05, leiden.50, louvain.50, leiden.95, louvain.95),
+    names_to = "clustering", values_to = "our_ari"
   ) %>%
-  arrange(method, dataset, best_for)
+  mutate(group = paste0(dataset,"_",method,"_",clustering)) %>%
+  mutate(best_for = gsub(".[0-9][0-9]$","", clustering))
 
 compare_ari <- p_ari %>%
   left_join(billato_long, by = c("dataset", "method", "best_for")) %>%
@@ -135,29 +140,30 @@ compare_ari <- p_ari %>%
     best_for = factor(as.character(best_for), levels = c("leiden", "louvain")),
     dataset = factor(dataset, levels = names(dataset_cols))
   ) %>%
-  arrange(method, dataset, best_for)
+  arrange(method, dataset, best_for) 
 
 compare_ari
 ```
 
 ```{r plot-billato, fig.height=4.5, fig.width=5}
 ari_limits_p95 <- range(
-  c(compare_ari$billato_ari, compare_ari$our_ari_p95),
+  c(compare_ari$billato_ari, compare_ari$our_ari),
   na.rm = TRUE
 )
 
-p_billato <- ggplot(compare_ari, aes(
+p_billato <- ggplot(compare_ari %>% filter(best_for=="louvain"), aes(
   x = billato_ari, y = our_ari,
   fill = method, size = best_for, shape = dataset
   )) +
+    geom_line(alpha = .9, colour="grey85", linewidth = .5) +
     geom_abline(slope = 1, intercept = 0, 
                 linetype = "dashed", color = "grey50") +
     geom_point(alpha = 0.65, color = "black") +
     labs(x = "<i>Billato et al.</i> ARI",
-         y = "Our 95<sup>th</sup> %tile ARI",
+         y = "Our 5/50/95<sup>th</sup> %tile ARI",
          fill = "Method"
     ) +
-    coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
+    #coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
     scale_fill_method(name = "Method") +
     scale_shape_manual(name = "Dataset", values = c(21, 22, 24, 25)) +
     scale_size_manual(name = "Algorithm", values = c(leiden = 3.5, louvain = 2)) +
@@ -199,3 +205,36 @@ p_main_panels <- (
 
 p_main_panels
 ```
+
+
+# Patchwork
+
+```{r playing-around-extra-panel}
+agree_cols <- grep("agree", colnames(metrics_new))
+struc_cols <- grep("struc", colnames(metrics_new))
+library(pheatmap)
+pheatmap(cor(metrics_new[,c(agree_cols, struc_cols)]))
+
+ggplot(metrics_new, 
+       aes(x = struc_davies_bouldin_louvain, 
+           y = agree_ari_louvain,
+           colour = method, shape = dataset)) +
+  scale_colour_manual(values = met_cols) +
+  geom_point()
+
+ggplot(metrics_new, 
+       aes(x = struc_silhouette_louvain, 
+           y = agree_ari_louvain,
+           colour = method, shape = dataset)) +
+  scale_colour_manual(values = met_cols) +
+  geom_point()
+
+ggplot(metrics_new, 
+       aes(x = agree_ari_louvain, 
+           y = agree_ari_leiden,
+           colour = method, shape = dataset)) +
+  scale_colour_manual(values = met_cols) +
+  geom_point()
+
+```
+
