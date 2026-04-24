@@ -87,16 +87,18 @@ panel_a <- ggplot(
     timings_plot %>% filter(dataset == "cb"),
     aes(x = method, y = gpu_load + hvg + pca + umap + leiden)
 ) +
-    geom_boxplot(
-        aes(group = method),
-        width = 0.6, outlier.shape = NA,
-        fill = "grey95", colour = "grey40"
-    ) +
+    # geom_boxplot(
+    #     aes(group = method),
+    #     width = 0.6, outlier.shape = NA,
+    #     fill = "grey95", colour = "grey40"
+    # ) +
     geom_point(
         data = timings_total,
         aes(x = method, y = total_time, colour = n_comp, shape = n_hvg),
-        position = position_jitter(width = 0.15, height = 0),
-        size = 2
+        position = position_dodge(width = 1),
+        size = 1
+        # position = position_jitter(width = 0.15, height = 0),
+        # size = 2
     ) +
     scale_color_pca() +
     scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
@@ -122,16 +124,18 @@ panel_b <- ggplot(
     timings_plot %>% filter(dataset == "cb"),
     aes(x = method, y = pca)
 ) +
-    geom_boxplot(
-        aes(group = method),
-        width = 0.6, outlier.shape = NA,
-        fill = "grey95", colour = "grey40"
-    ) +
+    # geom_boxplot(
+    #     aes(group = method),
+    #     width = 0.6, outlier.shape = NA,
+    #     fill = "grey95", colour = "grey40"
+    # ) +
     geom_point(
         data = timings_pca,
         aes(x = method, y = pca, colour = n_comp, shape = n_hvg),
-        position = position_jitter(width = 0.15, height = 0),
-        size = 2
+        position = position_dodge(width = 1),
+        size = 1
+        # position = position_jitter(width = 0.15, height = 0),
+        # size = 2
     ) +
     scale_color_pca() +
     scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
@@ -158,16 +162,18 @@ panel_c <- ggplot(
     timings_plot %>% filter(dataset == "cb"),
     aes(x = method, y = umap)
 ) +
-    geom_boxplot(
-        aes(group = method),
-        width = 0.6, outlier.shape = NA,
-        fill = "grey95", colour = "grey40"
-    ) +
+    # geom_boxplot(
+    #     aes(group = method),
+    #     width = 0.6, outlier.shape = NA,
+    #     fill = "grey95", colour = "grey40"
+    # ) +
     geom_point(
         data = timings_umap,
         aes(x = method, y = umap, colour = n_comp),
-        position = position_jitter(width = 0.15, height = 0),
-        size = 2, alpha = 0.75
+        position = position_dodge(width = 1),
+        size = 1
+        # position = position_jitter(width = 0.15, height = 0),
+        # size = 2, alpha = 0.75
     ) +
     scale_color_pca() +
     ylab("UMAP time <i>(s)</i>") +
