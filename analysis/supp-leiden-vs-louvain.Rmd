@@ -43,8 +43,8 @@ p_ari_leiden_vs_louvain <- ggplot(
   scale_color_method(name = "Method") +
   scale_shape_discrete(name = "Dataset", limits = names(dataset_cols)) +
   labs(
-    x = "**Louvain** ARI",
-    y = "**Leiden** ARI",
+    x = "ARI <span style='color:grey30'>(Louvain)</span>",
+    y = "ARI <span style='color:grey30'>(Leiden)</span>",
     color = "Method",
     shape = "Dataset"
   )
@@ -74,7 +74,8 @@ p_ari_diff <- ggplot(
   scale_color_method(guide = "none") +
   scale_fill_method(guide = "none") +
   labs(
-    x = "Method", y = "ARI<sub>Leiden</sub> - ARI<sub>Louvain</sub>",
+    x = "Method",
+    y = "ARI <span style='color:grey30'>(Leiden)</span> - ARI <span style='color:grey30'>(Louvain)</span>",
     color = "Method", shape = NULL
   )
 

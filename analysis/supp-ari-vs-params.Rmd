@@ -51,7 +51,10 @@ make_param_plot <- function(df, x_col, group_cols, x_label) {
     geom_line(position = pos, linewidth = 0.7, alpha = 0.5) +
     facet_wrap(~dataset, scales = "free_y") +
     scale_color_method(name = "Method") +
-    labs(x = x_label, y = "ARI - Leiden", color = "Method")
+    labs(
+      x = x_label, y = "ARI <span style='color:grey30'>(Leiden)</span>",
+      color = "Method"
+    )
 }
 
 p_n_comp <- make_param_plot(
