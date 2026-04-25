@@ -31,15 +31,17 @@ source(file.path(analysis_dir, "data.R"))
 ```{r ari-leiden-vs-clusters-group-paths, fig.height=5, fig.width=9}
 ari_leiden_paths <- metrics_new %>%
   filter(filtering == "manual") %>%
-  group_by(dataset, method, d_cluster) %>% # or n_clusters_leiden
-  summarise(ari_median = median(agree_ari_leiden, na.rm = TRUE),
-            ari_q25 = quantile(agree_ari_leiden, 0.25, na.rm = TRUE),
-            ari_q75 = quantile(agree_ari_leiden, 0.75, na.rm = TRUE))
+  group_by(dataset, method, d_cluster) %>%
+  summarise(
+    ari_median = median(agree_ari_leiden, na.rm = TRUE),
+    ari_q25 = quantile(agree_ari_leiden, 0.25, na.rm = TRUE),
+    ari_q75 = quantile(agree_ari_leiden, 0.75, na.rm = TRUE)
+  )
 
-p_ari_leiden_paths <- ggplot(
-  ari_leiden_paths, 
+ari_quantiles_leiden_paths <- ggplot(
+  ari_leiden_paths,
   aes(
-    x = d_cluster, y = ari_median, # or n_clusters_leiden
+    x = d_cluster, y = ari_median,
     color = method, fill = method, group = method
   )
 ) +
@@ -49,16 +51,16 @@ p_ari_leiden_paths <- ggplot(
     show.legend = FALSE
   ) +
   geom_line(linewidth = 0.8) +
-  # geom_point(size = 1.5) + # optional
   facet_wrap(~dataset, scales = "free_x") +
   scale_color_method(name = "Method") +
   scale_fill_method(name = "Method") +
   labs(
-    x = "Delta number of clusters", y = "ARI (Leiden)",
+    x = "Delta number of clusters",
+    y = "ARI <span style='color:grey30'>(Leiden)</span>",
     color = "Method"
   )
 
-p_ari_leiden_paths
+ari_quantiles_leiden_paths
 ```
 
 # ARI v Timings
@@ -83,7 +85,7 @@ ari_vs_total_timing_top <- ari_vs_total_timing %>%
 set.seed(42)
 s <- sample(nrow(ari_vs_total_timing_top))
 
-p_ari_vs_total_timing <- ggplot(
+ari_quantiles_vs_total_timing <- ggplot(
   ari_vs_total_timing_top[s, ],
   aes(x = total_seconds, y = agree_ari_leiden, color = method)
 ) +
@@ -95,9 +97,13 @@ p_ari_vs_total_timing <- ggplot(
   facet_wrap(~dataset, scales = "free_x") +
   scale_color_method(name = "Method") +
   scale_x_log10() +
-  labs(x = "Total timing <i>(s)</i>", y = "ARI (Leiden)", color = "Method")
+  labs(
+    x = "Total timing <i>(s)</i>",
+    y = "ARI <span style='color:grey30'>(Leiden)</span>",
+    color = "Method"
+  )
 
-p_ari_vs_total_timing
+ari_quantiles_vs_total_timing
 ```
 
 # Compare with Billato et al.
@@ -115,20 +121,31 @@ billato_long <- billato %>%
     )
   )
 
-p_ari <- metrics_new %>%
+ari_quantiles <- metrics_new %>%
   group_by(dataset, method) %>%
   summarize(
-    leiden = quantile(agree_ari_leiden, probs = 0.95, na.rm = TRUE),
-    louvain = quantile(agree_ari_louvain, probs = 0.95, na.rm = TRUE),
+    leiden.05 = quantile(agree_ari_leiden, probs = 0.05, na.rm = TRUE),
+    louvain.05 = quantile(agree_ari_louvain, probs = 0.05, na.rm = TRUE),
+    leiden.50 = quantile(agree_ari_leiden, probs = 0.5, na.rm = TRUE),
+    louvain.50 = quantile(agree_ari_louvain, probs = 0.5, na.rm = TRUE),
+    leiden.95 = quantile(agree_ari_leiden, probs = 0.95, na.rm = TRUE),
+    louvain.95 = quantile(agree_ari_louvain, probs = 0.95, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   pivot_longer(
-    cols = c(leiden, louvain),
-    names_to = "best_for", values_to = "our_ari"
+    cols = c(
+      leiden.05, louvain.05,
+      leiden.50, louvain.50,
+      leiden.95, louvain.95
+    ),
+    names_to = "clustering", values_to = "our_ari"
   ) %>%
-  arrange(method, dataset, best_for)
+  mutate(
+    group = paste0(dataset, "_", method, "_", clustering),
+    best_for = gsub(".[0-9][0-9]$", "", clustering)
+  )
 
-compare_ari <- p_ari %>%
+compare_ari <- ari_quantiles %>%
   left_join(billato_long, by = c("dataset", "method", "best_for")) %>%
   mutate(
     method = factor(method, levels = names(met_cols)),
@@ -141,38 +158,34 @@ compare_ari
 ```
 
 ```{r plot-billato, fig.height=4.5, fig.width=5}
-ari_limits_p95 <- range(
-  c(compare_ari$billato_ari, compare_ari$our_ari_p95),
-  na.rm = TRUE
-)
-
-p_billato <- ggplot(compare_ari, aes(
+p_billato <- ggplot(compare_ari %>% filter(best_for == "leiden"), aes(
   x = billato_ari, y = our_ari,
-  fill = method, size = best_for, shape = dataset
-  )) +
-    geom_abline(slope = 1, intercept = 0, 
-                linetype = "dashed", color = "grey50") +
-    geom_point(alpha = 0.65, color = "black") +
-    labs(x = "<i>Billato et al.</i> ARI",
-         y = "Our 95<sup>th</sup> %tile ARI",
-         fill = "Method"
-    ) +
-    coord_equal(xlim = ari_limits_p95, ylim = ari_limits_p95) +
-    scale_fill_method(name = "Method") +
-    scale_shape_manual(name = "Dataset", values = c(21, 22, 24, 25)) +
-    scale_size_manual(name = "Algorithm", values = c(leiden = 3.5, louvain = 2)) +
-    guides(
-        fill = guide_legend(override.aes = list(shape = 21, size = 4)),
-        shape = guide_legend(override.aes = list(size = 4, fill = "grey80")),
-        size = guide_legend(override.aes = list(shape = 21, fill = "grey80"))
-    )
+  fill = method, shape = dataset
+)) +
+  geom_line(alpha = .9, colour = "grey85", linewidth = .5) +
+  geom_abline(
+    slope = 1, intercept = 0,
+    linetype = "dashed", color = "grey50"
+  ) +
+  geom_point(alpha = 0.65, color = "black") +
+  labs(
+    x = "<i>Billato et al.</i> ARI",
+    y = "Our 5/50/95<sup>th</sup> %tile ARI",
+    fill = "Method"
+  ) +
+  scale_fill_method(name = "Method") +
+  scale_shape_manual(name = "Dataset", values = c(21, 22, 24, 25)) +
+  guides(
+    fill = guide_legend(override.aes = list(shape = 21, size = 4)),
+    shape = guide_legend(override.aes = list(size = 4, fill = "grey80"))
+  )
 
 p_billato
 ```
 
 # Patchwork
 
-```{r fig-ari, fig.height=7.6, fig.width=6.69}
+```{r fig-ari, fig.height=8.5, fig.width=6.69}
 layout_main <- "
 AA
 BB
@@ -180,14 +193,14 @@ CD
 "
 
 p_main_panels <- (
-  (p_ari_leiden_paths + guides(color = "none")) +
-    (p_ari_vs_total_timing + guides(color = "none")) +
+  (ari_quantiles_leiden_paths + guides(color = "none")) +
+    (ari_quantiles_vs_total_timing + guides(color = "none")) +
     p_billato +
     guide_area()
 ) +
   plot_layout(
     design = layout_main,
-    heights = c(1.25, 1.25, 1.0),
+    heights = c(1, 1.2, 1.1),
     guides = "collect"
   ) +
   plot_annotation(tag_levels = "A") &

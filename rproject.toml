@@ -4,6 +4,10 @@ r_version = "4.5"
 
 repositories = [
   { alias = "PPM", url = "https://packagemanager.posit.co/cran/latest" },
+  { alias = "BioCsoft", url = "https://bioconductor.org/packages/3.22/bioc" },
+  { alias = "BioCann", url = "https://bioconductor.org/packages/3.22/data/annotation" },
+  { alias = "BioCexp", url = "https://bioconductor.org/packages/3.22/data/experiment" },
+  { alias = "BioCworkflows", url = "https://bioconductor.org/packages/3.22/workflows" },
 ]
 
 dependencies = [
@@ -11,6 +15,7 @@ dependencies = [
   "ggtext",
   "lmerTest",
   "ComplexUpset",
+  "ComplexHeatmap",
   "dplyr",
   "here",
   "magick",

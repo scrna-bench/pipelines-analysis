@@ -1,0 +1,85 @@
+---
+title: "Supplementary: Metric Correlations"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(ComplexHeatmap)
+library(circlize)
+library(here)
+
+analysis_dir <- here("analysis")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
+```
+
+```{r load_data, include=FALSE}
+source(file.path(analysis_dir, "data.R"))
+```
+
+# Metric correlations
+
+```{r supp-metrics-corr, fig.height=7, fig.width=6.69}
+leiden_cols <- grep("^(agree|struc)_.*_leiden$", names(metrics_new), value = TRUE)
+
+clean_label <- function(x) {
+  x <- gsub("^(agree|struc)_|_leiden$", "", x)
+  x <- sub("^ari", "ARI", x)
+  x <- sub("^nmi", "NMI", x)
+  x <- sub("^fowlkes_mallows", "Fowlkes-Mallows", x)
+  x <- sub("^homogeneity", "Homogeneity", x)
+  x <- sub("^completeness", "Completeness", x)
+  x <- sub("^v_measure", "V-measure", x)
+  x <- sub("^silhouette", "Silhouette", x)
+  x <- sub("^davies_bouldin", "Davies-Bouldin", x)
+  x <- sub("^calinski_harabasz", "Calinski-Harabasz", x)
+  x
+}
+
+cor_mat <- cor(metrics_new[, leiden_cols], use = "pairwise.complete.obs")
+rownames(cor_mat) <- colnames(cor_mat) <- clean_label(leiden_cols)
+
+col_fun <- colorRamp2(c(-1, 0, 1), c("#2B8CBE", "#FFF7BC", "#D7301F"))
+
+grp <- ifelse(grepl("^agree_", leiden_cols), "Agreement", "Structure")
+grp_colors <- c(Agreement = "#0077BB", Structure = "#EE7733")
+
+ha_col <- HeatmapAnnotation(
+  `Metric Type` = grp,
+  col = list(`Metric Type` = grp_colors),
+  show_annotation_name = FALSE,
+  show_legend = FALSE
+)
+
+ha_row <- rowAnnotation(
+  `Metric Type` = grp,
+  col = list(`Metric Type` = grp_colors),
+  show_annotation_name = FALSE
+)
+
+ht <- Heatmap(
+  cor_mat,
+  col = col_fun,
+  top_annotation = ha_col,
+  left_annotation = ha_row,
+  column_names_rot = 45,
+  heatmap_legend_param = list(
+    title          = "Correlation",
+    direction      = "horizontal",
+    legend_width   = unit(3.2, "cm")
+  )
+)
+
+draw(
+  ht,
+  heatmap_legend_side    = "bottom",
+  annotation_legend_side = "bottom",
+  merge_legend           = TRUE
+)
+```

@@ -45,7 +45,7 @@ metrics_new <- metrics_new %>%
 timings_plot <- metrics_new %>%
   rename_with(~ sub("^timings_", "", .x), starts_with("timings_"))
 
-timings_m <- metrics_new %>%
+timings_m_s <- metrics_new %>%
   pivot_longer(
     cols = starts_with("timings_"),
     names_to = "stage",
@@ -54,25 +54,17 @@ timings_m <- metrics_new %>%
   mutate(
     stage = sub("^timings_", "", stage),
     method_cluster = as.factor(paste0(method, ".", d_cluster))
-  )
-
-table(timings_m$method_cluster)
-
-timings_m_s <- timings_m %>%
+  ) %>%
   filter(
     filtering == "manual", n_comp == 20,
     n_neig == 15, n_hvg == 2000,
-    stage %in% c(
-      "gpu_load", "hvg", "normalization", "pca", "umap", "leiden"
-    )
+    stage %in% c("gpu_load", "hvg", "normalization", "pca", "umap", "leiden")
   )
-table(timings_m_s$method_cluster)
 ```
 
 # Timings figures
 
 ```{r timings, fig.height=3.5, fig.width=4}
-
 timings_plot$gpu_load[is.na(timings_plot$gpu_load)] <- 0
 
 timings_total <- timings_plot %>%
@@ -83,31 +75,21 @@ timings_total <- timings_plot %>%
     .groups = "drop"
   )
 
-panel_a <- ggplot(
-    timings_plot %>% filter(dataset == "cb"),
-    aes(x = method, y = gpu_load + hvg + pca + umap + leiden)
+p_total_time <- ggplot(
+  timings_total,
+  aes(x = method, y = total_time, colour = n_comp, shape = n_hvg)
 ) +
-    geom_boxplot(
-        aes(group = method),
-        width = 0.6, outlier.shape = NA,
-        fill = "grey95", colour = "grey40"
-    ) +
-    geom_point(
-        data = timings_total,
-        aes(x = method, y = total_time, colour = n_comp, shape = n_hvg),
-        position = position_jitter(width = 0.15, height = 0),
-        size = 2
-    ) +
-    scale_color_pca() +
-    scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
-    ylab("Total pipeline time <i>(s)</i>") +
-    xlab("") +
-    theme(
-        axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
-        legend.position = "none"
-    ) +
-    scale_y_sqrt()
-panel_a
+  geom_point(position = position_dodge(width = 1), size = 1) +
+  scale_color_pca() +
+  scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
+  ylab("Total pipeline time <i>(s)</i>") +
+  xlab("") +
+  theme(
+    axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
+    legend.position = "none"
+  ) +
+  scale_y_sqrt()
+p_total_time
 
 
 timings_pca <- timings_plot %>%
@@ -118,33 +100,23 @@ timings_pca <- timings_plot %>%
     .groups = "drop"
   )
 
-panel_b <- ggplot(
-    timings_plot %>% filter(dataset == "cb"),
-    aes(x = method, y = pca)
+p_pca_time <- ggplot(
+  timings_pca,
+  aes(x = method, y = pca, colour = n_comp, shape = n_hvg)
 ) +
-    geom_boxplot(
-        aes(group = method),
-        width = 0.6, outlier.shape = NA,
-        fill = "grey95", colour = "grey40"
-    ) +
-    geom_point(
-        data = timings_pca,
-        aes(x = method, y = pca, colour = n_comp, shape = n_hvg),
-        position = position_jitter(width = 0.15, height = 0),
-        size = 2
-    ) +
-    scale_color_pca() +
-    scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
-    ylab("PCA time <i>(s)</i>") +
-    xlab("") +
-    theme(
-        axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
-        legend.position = "bottom",
-        legend.spacing.x = unit(0.2, "cm"),
-        legend.margin = margin(t = 2, b = 2)
-    ) +
-    scale_y_sqrt()
-panel_b
+  geom_point(position = position_dodge(width = 1), size = 1) +
+  scale_color_pca() +
+  scale_shape_manual(name = "HVGs", values = c(1, 4, 5)) +
+  ylab("PCA time <i>(s)</i>") +
+  xlab("") +
+  theme(
+    axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
+    legend.position = "bottom",
+    legend.spacing.x = unit(0.2, "cm"),
+    legend.margin = margin(t = 2, b = 2)
+  ) +
+  scale_y_sqrt()
+p_pca_time
 
 timings_umap <- timings_plot %>%
   filter(dataset == "cb") %>%
@@ -154,32 +126,22 @@ timings_umap <- timings_plot %>%
     .groups = "drop"
   )
 
-panel_c <- ggplot(
-    timings_plot %>% filter(dataset == "cb"),
-    aes(x = method, y = umap)
+p_umap_time <- ggplot(
+  timings_umap,
+  aes(x = method, y = umap, colour = n_comp)
 ) +
-    geom_boxplot(
-        aes(group = method),
-        width = 0.6, outlier.shape = NA,
-        fill = "grey95", colour = "grey40"
-    ) +
-    geom_point(
-        data = timings_umap,
-        aes(x = method, y = umap, colour = n_comp),
-        position = position_jitter(width = 0.15, height = 0),
-        size = 2, alpha = 0.75
-    ) +
-    scale_color_pca() +
-    ylab("UMAP time <i>(s)</i>") +
-    xlab("") +
-    theme(
-        axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
-        legend.position = "none"
-    ) +
-    scale_y_sqrt()
-panel_c
+  geom_point(position = position_dodge(width = 1), size = 1) +
+  scale_color_pca() +
+  ylab("UMAP time <i>(s)</i>") +
+  xlab("") +
+  theme(
+    axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1),
+    legend.position = "none"
+  ) +
+  scale_y_sqrt()
+p_umap_time
 
-panel_d <- ggplot(
+p_stage_props <- ggplot(
   timings_m_s %>% filter(dataset == "cb"),
   aes(x = d_cluster, y = value, fill = stage)
 ) +
@@ -189,8 +151,7 @@ panel_d <- ggplot(
     values = stage_cols,
     labels = function(x) {
       ifelse(
-        x == "normalization", "norm.",
-        ifelse(x == "gpu_load", "GPU load", x)
+        x == "normalization", "norm.", ifelse(x == "gpu_load", "GPU load", x)
       )
     }
   ) +
@@ -202,17 +163,17 @@ panel_d <- ggplot(
     legend.spacing.x = unit(0.2, "cm"),
     legend.margin = margin(t = 2, b = 2)
   ) +
-  guides(fill=guide_legend(nrow=1))
-panel_d
+  guides(fill = guide_legend(nrow = 1))
+p_stage_props
 ```
 
 # Patchwork
 
 ```{r fig-timings, fig.height=8.85, fig.width=6.69}
-png_image <- image_read(file.path(data_dir, "plan_alt2.png"))
+png_image <- image_read(file.path(data_dir, "plan.png"))
 png_plot <- image_ggplot(png_image)
-
-wrap_elements(full = png_plot) / ((panel_a | panel_b | panel_c) / panel_d) +
-  plot_layout(heights = c(1, 1.5)) +
+wrap_elements(full = png_plot) /
+  ((p_total_time | p_pca_time | p_umap_time) / p_stage_props) +
+  plot_layout(heights = c(1, 1.6)) +
   plot_annotation(tag_levels = "A")
 ```
