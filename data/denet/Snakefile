@@ -1,0 +1,662 @@
+#!/usr/bin/env snakemake
+# OmniBenchmark: scRNA Benchmark (pipelines) v1.1 (Atreya Choudhury, Mark Robinson, Martin Emons, David Wissel, Samuel Gunz)
+# Generated: 2026-04-27 11:09:48.415864
+# Auto-generated — do not edit by hand.
+# Stage: datasets, Module: datasets-r
+# Repository: https://github.com/scrna-bench/datasets
+# Commit: d2e05fc1e9773d5898201cbf0b5b9b503c8ea738
+rule datasets_datasets_r_8b2abb9e:
+    output:
+        "datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        "datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        "datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+    params:
+        module_dir=".modules/datasets/d2e05fc",
+        entrypoint="run.R",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="--dataset_name pbmc68k",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:r-bioc-320-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        echo '{{"dataset_name": "pbmc68k"}}' > $OUTPUT_DIR/parameters.json
+        ln -sfn .8b2abb9e $OUTPUT_DIR/../dataset_name-pbmc68k
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        {params.cli_args}
+        """
+
+# Stage: methods, Module: pipelines-r
+# Repository: https://github.com/scrna-bench/pipelines-r
+# Commit: 3e4b4fd6f1a03f13b5fb16444de8318a1fc607e0
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2:
+    input:
+        data_h5ad="datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        data_clusters_truth_num="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.pca.tsv",
+    params:
+        module_dir=".modules/pipelines-r/3e4b4fd",
+        entrypoint="run.R",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="--d_cluster 0 --filter manual --max_threads 1 --method_name scrapper --n_comp 30 --n_hvg 2000 --n_neig 15",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:r-bioc-320-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_h5ad=$(cd $(dirname {input.data_h5ad}) && pwd)/$(basename {input.data_h5ad})
+        INPUT_data_clusters_truth_num=$(cd $(dirname {input.data_clusters_truth_num}) && pwd)/$(basename {input.data_clusters_truth_num})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        echo '{{"d_cluster": 0, "filter": "manual", "max_threads": 1, "method_name": "scrapper", "n_comp": 30, "n_hvg": 2000, "n_neig": 15}}' > $OUTPUT_DIR/parameters.json
+        ln -sfn .a3aa2ec2 $OUTPUT_DIR/../d_cluster-0_filter-manual_max_threads-1_method_name-scrapper_n_comp-30_n_hvg-2000_n_neig-15
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.h5ad $INPUT_data_h5ad \\
+        --data.clusters_truth_num $INPUT_data_clusters_truth_num \\
+        {params.cli_args}
+        """
+
+# Stage: methods, Module: pipelines-r
+# Repository: https://github.com/scrna-bench/pipelines-r
+# Commit: 3e4b4fd6f1a03f13b5fb16444de8318a1fc607e0
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779:
+    input:
+        data_h5ad="datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        data_clusters_truth_num="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.pca.tsv",
+    params:
+        module_dir=".modules/pipelines-r/3e4b4fd",
+        entrypoint="run.R",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="--d_cluster 0 --filter manual --max_threads 4 --method_name scrapper --n_comp 30 --n_hvg 2000 --n_neig 15",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:r-bioc-320-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_h5ad=$(cd $(dirname {input.data_h5ad}) && pwd)/$(basename {input.data_h5ad})
+        INPUT_data_clusters_truth_num=$(cd $(dirname {input.data_clusters_truth_num}) && pwd)/$(basename {input.data_clusters_truth_num})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        echo '{{"d_cluster": 0, "filter": "manual", "max_threads": 4, "method_name": "scrapper", "n_comp": 30, "n_hvg": 2000, "n_neig": 15}}' > $OUTPUT_DIR/parameters.json
+        ln -sfn .34020779 $OUTPUT_DIR/../d_cluster-0_filter-manual_max_threads-4_method_name-scrapper_n_comp-30_n_hvg-2000_n_neig-15
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.h5ad $INPUT_data_h5ad \\
+        --data.clusters_truth_num $INPUT_data_clusters_truth_num \\
+        {params.cli_args}
+        """
+
+# Stage: methods, Module: pipelines-r
+# Repository: https://github.com/scrna-bench/pipelines-r
+# Commit: 3e4b4fd6f1a03f13b5fb16444de8318a1fc607e0
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6:
+    input:
+        data_h5ad="datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        data_clusters_truth_num="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.pca.tsv",
+    params:
+        module_dir=".modules/pipelines-r/3e4b4fd",
+        entrypoint="run.R",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="--d_cluster 0 --filter manual --max_threads 8 --method_name scrapper --n_comp 30 --n_hvg 2000 --n_neig 15",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:r-bioc-320-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_h5ad=$(cd $(dirname {input.data_h5ad}) && pwd)/$(basename {input.data_h5ad})
+        INPUT_data_clusters_truth_num=$(cd $(dirname {input.data_clusters_truth_num}) && pwd)/$(basename {input.data_clusters_truth_num})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        echo '{{"d_cluster": 0, "filter": "manual", "max_threads": 8, "method_name": "scrapper", "n_comp": 30, "n_hvg": 2000, "n_neig": 15}}' > $OUTPUT_DIR/parameters.json
+        ln -sfn .67374bb6 $OUTPUT_DIR/../d_cluster-0_filter-manual_max_threads-8_method_name-scrapper_n_comp-30_n_hvg-2000_n_neig-15
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.h5ad $INPUT_data_h5ad \\
+        --data.clusters_truth_num $INPUT_data_clusters_truth_num \\
+        {params.cli_args}
+        """
+
+# Stage: methods, Module: pipelines-py
+# Repository: https://github.com/scrna-bench/pipelines-py
+# Commit: 30efa447ba4626921cae2419e0c1b0c2dae267e1
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6:
+    input:
+        data_h5ad="datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        data_clusters_truth_num="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.pca.tsv",
+    params:
+        module_dir=".modules/pipelines-py/30efa44",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="--d_cluster 0 --filter manual --max_threads 1 --method_name scanpy --n_comp 30 --n_hvg 2000 --n_neig 15",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_h5ad=$(cd $(dirname {input.data_h5ad}) && pwd)/$(basename {input.data_h5ad})
+        INPUT_data_clusters_truth_num=$(cd $(dirname {input.data_clusters_truth_num}) && pwd)/$(basename {input.data_clusters_truth_num})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        echo '{{"d_cluster": 0, "filter": "manual", "max_threads": 1, "method_name": "scanpy", "n_comp": 30, "n_hvg": 2000, "n_neig": 15}}' > $OUTPUT_DIR/parameters.json
+        ln -sfn .f8fe27d6 $OUTPUT_DIR/../d_cluster-0_filter-manual_max_threads-1_method_name-scanpy_n_comp-30_n_hvg-2000_n_neig-15
+        cd {params.module_dir}
+        python3 {params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.h5ad $INPUT_data_h5ad \\
+        --data.clusters_truth_num $INPUT_data_clusters_truth_num \\
+        {params.cli_args}
+        """
+
+# Stage: methods, Module: pipelines-py
+# Repository: https://github.com/scrna-bench/pipelines-py
+# Commit: 30efa447ba4626921cae2419e0c1b0c2dae267e1
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a:
+    input:
+        data_h5ad="datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        data_clusters_truth_num="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.pca.tsv",
+    params:
+        module_dir=".modules/pipelines-py/30efa44",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="--d_cluster 0 --filter manual --max_threads 4 --method_name scanpy --n_comp 30 --n_hvg 2000 --n_neig 15",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_h5ad=$(cd $(dirname {input.data_h5ad}) && pwd)/$(basename {input.data_h5ad})
+        INPUT_data_clusters_truth_num=$(cd $(dirname {input.data_clusters_truth_num}) && pwd)/$(basename {input.data_clusters_truth_num})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        echo '{{"d_cluster": 0, "filter": "manual", "max_threads": 4, "method_name": "scanpy", "n_comp": 30, "n_hvg": 2000, "n_neig": 15}}' > $OUTPUT_DIR/parameters.json
+        ln -sfn .deed4e5a $OUTPUT_DIR/../d_cluster-0_filter-manual_max_threads-4_method_name-scanpy_n_comp-30_n_hvg-2000_n_neig-15
+        cd {params.module_dir}
+        python3 {params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.h5ad $INPUT_data_h5ad \\
+        --data.clusters_truth_num $INPUT_data_clusters_truth_num \\
+        {params.cli_args}
+        """
+
+# Stage: methods, Module: pipelines-py
+# Repository: https://github.com/scrna-bench/pipelines-py
+# Commit: 30efa447ba4626921cae2419e0c1b0c2dae267e1
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c:
+    input:
+        data_h5ad="datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        data_clusters_truth_num="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.pca.tsv",
+    params:
+        module_dir=".modules/pipelines-py/30efa44",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="--d_cluster 0 --filter manual --max_threads 8 --method_name scanpy --n_comp 30 --n_hvg 2000 --n_neig 15",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_h5ad=$(cd $(dirname {input.data_h5ad}) && pwd)/$(basename {input.data_h5ad})
+        INPUT_data_clusters_truth_num=$(cd $(dirname {input.data_clusters_truth_num}) && pwd)/$(basename {input.data_clusters_truth_num})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        echo '{{"d_cluster": 0, "filter": "manual", "max_threads": 8, "method_name": "scanpy", "n_comp": 30, "n_hvg": 2000, "n_neig": 15}}' > $OUTPUT_DIR/parameters.json
+        ln -sfn .be28130c $OUTPUT_DIR/../d_cluster-0_filter-manual_max_threads-8_method_name-scanpy_n_comp-30_n_hvg-2000_n_neig-15
+        cd {params.module_dir}
+        python3 {params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.h5ad $INPUT_data_h5ad \\
+        --data.clusters_truth_num $INPUT_data_clusters_truth_num \\
+        {params.cli_args}
+        """
+
+# Stage: metrics, Module: metrics-py
+# Repository: https://github.com/scrna-bench/metrics
+# Commit: a97c3d89eb4daa4a54e1dfe1ff1b0260cca910ca
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2_metrics_metrics_py_default:
+    input:
+        data_clusters_truth="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        methods_pca="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.pca.tsv",
+        methods_clusters="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.clusters.tsv",
+        methods_timings="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.timings.json",
+        methods_clustering_info="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.clustering_info.json",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/metrics/metrics-py/.default/datasets-r.metrics.json",
+    params:
+        module_dir=".modules/metrics/a97c3d8",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/metrics/metrics-py/.default/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2_metrics_metrics_py_default.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_clusters_truth=$(cd $(dirname {input.data_clusters_truth}) && pwd)/$(basename {input.data_clusters_truth})
+        INPUT_methods_pca=$(cd $(dirname {input.methods_pca}) && pwd)/$(basename {input.methods_pca})
+        INPUT_methods_clusters=$(cd $(dirname {input.methods_clusters}) && pwd)/$(basename {input.methods_clusters})
+        INPUT_methods_timings=$(cd $(dirname {input.methods_timings}) && pwd)/$(basename {input.methods_timings})
+        INPUT_methods_clustering_info=$(cd $(dirname {input.methods_clustering_info}) && pwd)/$(basename {input.methods_clustering_info})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.clusters_truth $INPUT_data_clusters_truth \\
+        --methods.pca $INPUT_methods_pca \\
+        --methods.clusters $INPUT_methods_clusters \\
+        --methods.timings $INPUT_methods_timings \\
+        --methods.clustering_info $INPUT_methods_clustering_info
+        """
+
+# Stage: metrics, Module: metrics-py
+# Repository: https://github.com/scrna-bench/metrics
+# Commit: a97c3d89eb4daa4a54e1dfe1ff1b0260cca910ca
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779_metrics_metrics_py_default:
+    input:
+        data_clusters_truth="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        methods_pca="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.pca.tsv",
+        methods_clusters="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.clusters.tsv",
+        methods_timings="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.timings.json",
+        methods_clustering_info="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.clustering_info.json",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/metrics/metrics-py/.default/datasets-r.metrics.json",
+    params:
+        module_dir=".modules/metrics/a97c3d8",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/metrics/metrics-py/.default/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779_metrics_metrics_py_default.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_clusters_truth=$(cd $(dirname {input.data_clusters_truth}) && pwd)/$(basename {input.data_clusters_truth})
+        INPUT_methods_pca=$(cd $(dirname {input.methods_pca}) && pwd)/$(basename {input.methods_pca})
+        INPUT_methods_clusters=$(cd $(dirname {input.methods_clusters}) && pwd)/$(basename {input.methods_clusters})
+        INPUT_methods_timings=$(cd $(dirname {input.methods_timings}) && pwd)/$(basename {input.methods_timings})
+        INPUT_methods_clustering_info=$(cd $(dirname {input.methods_clustering_info}) && pwd)/$(basename {input.methods_clustering_info})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.clusters_truth $INPUT_data_clusters_truth \\
+        --methods.pca $INPUT_methods_pca \\
+        --methods.clusters $INPUT_methods_clusters \\
+        --methods.timings $INPUT_methods_timings \\
+        --methods.clustering_info $INPUT_methods_clustering_info
+        """
+
+# Stage: metrics, Module: metrics-py
+# Repository: https://github.com/scrna-bench/metrics
+# Commit: a97c3d89eb4daa4a54e1dfe1ff1b0260cca910ca
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6_metrics_metrics_py_default:
+    input:
+        data_clusters_truth="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        methods_pca="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.pca.tsv",
+        methods_clusters="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.clusters.tsv",
+        methods_timings="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.timings.json",
+        methods_clustering_info="datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.clustering_info.json",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/metrics/metrics-py/.default/datasets-r.metrics.json",
+    params:
+        module_dir=".modules/metrics/a97c3d8",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/metrics/metrics-py/.default/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6_metrics_metrics_py_default.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_clusters_truth=$(cd $(dirname {input.data_clusters_truth}) && pwd)/$(basename {input.data_clusters_truth})
+        INPUT_methods_pca=$(cd $(dirname {input.methods_pca}) && pwd)/$(basename {input.methods_pca})
+        INPUT_methods_clusters=$(cd $(dirname {input.methods_clusters}) && pwd)/$(basename {input.methods_clusters})
+        INPUT_methods_timings=$(cd $(dirname {input.methods_timings}) && pwd)/$(basename {input.methods_timings})
+        INPUT_methods_clustering_info=$(cd $(dirname {input.methods_clustering_info}) && pwd)/$(basename {input.methods_clustering_info})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.clusters_truth $INPUT_data_clusters_truth \\
+        --methods.pca $INPUT_methods_pca \\
+        --methods.clusters $INPUT_methods_clusters \\
+        --methods.timings $INPUT_methods_timings \\
+        --methods.clustering_info $INPUT_methods_clustering_info
+        """
+
+# Stage: metrics, Module: metrics-py
+# Repository: https://github.com/scrna-bench/metrics
+# Commit: a97c3d89eb4daa4a54e1dfe1ff1b0260cca910ca
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6_metrics_metrics_py_default:
+    input:
+        data_clusters_truth="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        methods_pca="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.pca.tsv",
+        methods_clusters="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.clusters.tsv",
+        methods_timings="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.timings.json",
+        methods_clustering_info="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.clustering_info.json",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/metrics/metrics-py/.default/datasets-r.metrics.json",
+    params:
+        module_dir=".modules/metrics/a97c3d8",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/metrics/metrics-py/.default/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6_metrics_metrics_py_default.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_clusters_truth=$(cd $(dirname {input.data_clusters_truth}) && pwd)/$(basename {input.data_clusters_truth})
+        INPUT_methods_pca=$(cd $(dirname {input.methods_pca}) && pwd)/$(basename {input.methods_pca})
+        INPUT_methods_clusters=$(cd $(dirname {input.methods_clusters}) && pwd)/$(basename {input.methods_clusters})
+        INPUT_methods_timings=$(cd $(dirname {input.methods_timings}) && pwd)/$(basename {input.methods_timings})
+        INPUT_methods_clustering_info=$(cd $(dirname {input.methods_clustering_info}) && pwd)/$(basename {input.methods_clustering_info})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.clusters_truth $INPUT_data_clusters_truth \\
+        --methods.pca $INPUT_methods_pca \\
+        --methods.clusters $INPUT_methods_clusters \\
+        --methods.timings $INPUT_methods_timings \\
+        --methods.clustering_info $INPUT_methods_clustering_info
+        """
+
+# Stage: metrics, Module: metrics-py
+# Repository: https://github.com/scrna-bench/metrics
+# Commit: a97c3d89eb4daa4a54e1dfe1ff1b0260cca910ca
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a_metrics_metrics_py_default:
+    input:
+        data_clusters_truth="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        methods_pca="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.pca.tsv",
+        methods_clusters="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.clusters.tsv",
+        methods_timings="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.timings.json",
+        methods_clustering_info="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.clustering_info.json",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/metrics/metrics-py/.default/datasets-r.metrics.json",
+    params:
+        module_dir=".modules/metrics/a97c3d8",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/metrics/metrics-py/.default/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a_metrics_metrics_py_default.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_clusters_truth=$(cd $(dirname {input.data_clusters_truth}) && pwd)/$(basename {input.data_clusters_truth})
+        INPUT_methods_pca=$(cd $(dirname {input.methods_pca}) && pwd)/$(basename {input.methods_pca})
+        INPUT_methods_clusters=$(cd $(dirname {input.methods_clusters}) && pwd)/$(basename {input.methods_clusters})
+        INPUT_methods_timings=$(cd $(dirname {input.methods_timings}) && pwd)/$(basename {input.methods_timings})
+        INPUT_methods_clustering_info=$(cd $(dirname {input.methods_clustering_info}) && pwd)/$(basename {input.methods_clustering_info})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.clusters_truth $INPUT_data_clusters_truth \\
+        --methods.pca $INPUT_methods_pca \\
+        --methods.clusters $INPUT_methods_clusters \\
+        --methods.timings $INPUT_methods_timings \\
+        --methods.clustering_info $INPUT_methods_clustering_info
+        """
+
+# Stage: metrics, Module: metrics-py
+# Repository: https://github.com/scrna-bench/metrics
+# Commit: a97c3d89eb4daa4a54e1dfe1ff1b0260cca910ca
+rule datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c_metrics_metrics_py_default:
+    input:
+        data_clusters_truth="datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        methods_pca="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.pca.tsv",
+        methods_clusters="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.clusters.tsv",
+        methods_timings="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.timings.json",
+        methods_clustering_info="datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.clustering_info.json",
+    output:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/metrics/metrics-py/.default/datasets-r.metrics.json",
+    params:
+        module_dir=".modules/metrics/a97c3d8",
+        entrypoint="run.py",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]) or ".",
+        cli_args="",
+    benchmark:
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/metrics/metrics-py/.default/datasets-r_performance.txt"
+    log:
+        ".logs/datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c_metrics_metrics_py_default.log"
+    container: "oras://quay.io/omnibenchmark/scrna-bench:py-rsc-0.14.1-latest-amd64"
+    resources:
+        cores=2
+    shell:
+        """
+        mkdir -p {params.output_dir} $(dirname {log})
+        OUTPUT_DIR=$(cd {params.output_dir} && pwd)
+        INPUT_data_clusters_truth=$(cd $(dirname {input.data_clusters_truth}) && pwd)/$(basename {input.data_clusters_truth})
+        INPUT_methods_pca=$(cd $(dirname {input.methods_pca}) && pwd)/$(basename {input.methods_pca})
+        INPUT_methods_clusters=$(cd $(dirname {input.methods_clusters}) && pwd)/$(basename {input.methods_clusters})
+        INPUT_methods_timings=$(cd $(dirname {input.methods_timings}) && pwd)/$(basename {input.methods_timings})
+        INPUT_methods_clustering_info=$(cd $(dirname {input.methods_clustering_info}) && pwd)/$(basename {input.methods_clustering_info})
+        LOG_FILE=$(pwd)/{log}
+        exec > >(tee "$LOG_FILE") 2>&1
+        echo '=== Rule: {rule} ==='
+        echo 'Started:' $(date -Iseconds)
+        echo '---'
+        cd {params.module_dir}
+        ./{params.entrypoint} \\
+        --output_dir $OUTPUT_DIR \\
+        --name datasets-r \\
+        --data.clusters_truth $INPUT_data_clusters_truth \\
+        --methods.pca $INPUT_methods_pca \\
+        --methods.clusters $INPUT_methods_clusters \\
+        --methods.timings $INPUT_methods_timings \\
+        --methods.clustering_info $INPUT_methods_clustering_info
+        """
+
+# Target rule: executes entire benchmark
+rule all:
+    input:
+        "datasets/datasets-r/.8b2abb9e/datasets-r.h5ad",
+        "datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth.tsv",
+        "datasets/datasets-r/.8b2abb9e/datasets-r.clusters_truth_num.txt",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/datasets-r.pca.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/datasets-r.pca.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/datasets-r.pca.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/datasets-r.pca.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/datasets-r.pca.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.timings.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.timings_sandwiches.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.clustering_info.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.clusters.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/datasets-r.pca.tsv",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/metrics/metrics-py/.default/datasets-r.metrics.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/metrics/metrics-py/.default/datasets-r.metrics.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/metrics/metrics-py/.default/datasets-r.metrics.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/metrics/metrics-py/.default/datasets-r.metrics.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/metrics/metrics-py/.default/datasets-r.metrics.json",
+        "datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/metrics/metrics-py/.default/datasets-r.metrics.json",
+    default_target: True
+

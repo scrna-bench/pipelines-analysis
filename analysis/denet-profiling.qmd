@@ -1,0 +1,137 @@
+---
+title: "denet profiling"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Load packages / helper code
+
+```{r load, warning=FALSE, message=FALSE}
+library(cowplot)
+source("denet-profiling-helpers.R")
+```
+
+## `denet` profiles
+
+To get profiles, I ran the workflows for individual rules manually (in an interactive session):
+
+```         
+# first, run all the things "manually"
+snakemake --cores 1 --use-singularity
+snakemake -lt | grep -v metrics
+
+#(omni-0.5.0) mark@rolandgarros:~/projects/omb/pipelines-plan/out$ snakemake -lt | grep -v metrics
+#all
+#datasets_datasets_r_8b2abb9e
+#datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c
+#datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a
+##datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6
+#datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779
+#datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6
+#datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2
+
+# remove some outputs so runs get triggered
+/bin/rm -v ./datasets/datasets-r/.8b2abb9e/methods/*/*/datasets-r.timings_sandwiches.json
+#/bin/rm -v ./datasets/datasets-r/.8b2abb9e/methods/*py/*/datasets-r.timings_sandwiches.json
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/parameters.json
+denet -i 50 -q -o scanpy-8-threads.json run snakemake -- --cores 1 --use-singularity \
+  datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/parameters.json
+denet -i 50 -q -o scanpy-4-threads.json run snakemake -- --cores 1 --use-singularity \
+  datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/parameters.json
+denet -i 50 -q -o scanpy-1-threads.json run snakemake -- --cores 1 --use-singularity \
+  datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/parameters.json
+denet -i 50 -q -o scrapper-1-threads.json run snakemake -- --cores 1 --use-singularity \
+  datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/parameters.json
+denet -i 50 -q -o scrapper-4-threads.json run snakemake -- --cores 1 --use-singularity \
+  datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/parameters.json
+denet -i 50 -q -o scrapper-8-threads.json run snakemake -- --cores 1 --use-singularity \
+  datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6
+```
+
+## Read Sandwich JSONs
+
+```{r}
+sandwich_fs <- list.files(pattern = "sandwiches", recursive = TRUE)
+sandwich_fs <- sandwich_fs[grep("datasets-r", sandwich_fs)]
+
+# this parsing is hella non-elegant
+ss <- strsplit(sandwich_fs, "/")
+ss <- strsplit(sapply(ss, .subset, 7), "_")
+names(sandwich_fs) <- sapply(ss, function(u) {
+  meth <- gsub("name-","",u[7])
+  thrd <- gsub("threads-","",u[5])
+  paste0(meth,":",thrd)
+})
+
+
+# Python/R JSON writers represent their outputs differently
+reader_type <- rep(1, length(sandwich_fs))
+reader_type[grep("py", sandwich_fs)] <- 2
+
+(sandwich_fs)
+(reader_type)
+
+sandwiches <- mapply(function(u,v) read_sandwiches(u, type=v),
+                     sandwich_fs,
+                     reader_type, SIMPLIFY = FALSE)
+
+lapply(sandwiches, head, 2)
+
+```
+
+## Read snakemake/ob JSONs
+
+```{r}
+fs <- list.files("data", pattern = ".json$", full.names = TRUE)
+names(fs) <- sapply(strsplit(basename(fs),"-"), function(u) paste0(u[1],":",u[2]))
+
+(fs)
+
+d_samples <- lapply(fs, read_aggregates)
+
+lapply(d_samples, function(u) head(u[,c("aggregated.ts_ms",
+                                        "aggregated.cpu_usage")], 2))
+
+ stopifnot(all(names(fs)==names(sandwiches)))
+
+```
+
+## Read snakemake/ob JSONs
+
+```{r}
+scanpy_traces <- mapply(plot_annotated_profiles,
+                        d_samples[1:3], names(d_samples)[1:3],
+                        sandwiches[1:3], suppress.right = TRUE)
+(p <- plot_grid(plotlist = scanpy_traces, ncol=1))
+
+
+scrapper_traces <- mapply(plot_annotated_profiles,
+                        d_samples[4:6], names(d_samples)[4:6],
+                        sandwiches[4:6], suppress.left = TRUE)
+(q <- plot_grid(plotlist = scrapper_traces, ncol=1))
+
+library(patchwork)
+
+p + q
+
+ggsave(filename = "supp-denet-traces.pdf", p+q,
+       width = 7.5, height = 8)
+
+```

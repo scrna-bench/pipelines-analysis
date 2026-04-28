@@ -1,0 +1,38 @@
+# first, run all the things "manually"
+#snakemake --cores 1 --use-singularity
+snakemake -lt | grep -v metrics
+
+#(omni-0.5.0) mark@rolandgarros:~/projects/omb/pipelines-plan/out$ snakemake -lt | grep -v metrics
+#all
+#datasets_datasets_r_8b2abb9e
+#datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c
+#datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a
+##datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6
+#datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779
+#datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6
+#datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2
+
+
+# remove some outputs so runs get triggered
+/bin/rm -v ./datasets/datasets-r/.8b2abb9e/methods/*/*/datasets-r.timings_sandwiches.json
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.be28130c/parameters.json
+denet -i 50 -q -o scanpy-8-threads.json run snakemake -- --cores 1 --use-singularity datasets_datasets_r_8b2abb9e_methods_pipelines_py_be28130c
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.deed4e5a/parameters.json
+denet -i 50 -q -o scanpy-4-threads.json run snakemake -- --cores 1 --use-singularity datasets_datasets_r_8b2abb9e_methods_pipelines_py_deed4e5a
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-py/.f8fe27d6/parameters.json
+denet -i 50 -q -o scanpy-1-thread.json run snakemake -- --cores 1 --use-singularity datasets_datasets_r_8b2abb9e_methods_pipelines_py_f8fe27d6
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.a3aa2ec2/parameters.json
+denet -i 50 -q -o scrapper-1-thread.json run snakemake -- --cores 1 --use-singularity datasets_datasets_r_8b2abb9e_methods_pipelines_r_a3aa2ec2
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.34020779/parameters.json
+denet -i 50 -q -o scrapper-4-threads.json run snakemake -- --cores 1 --use-singularity datasets_datasets_r_8b2abb9e_methods_pipelines_r_34020779
+
+cat ./datasets/datasets-r/.8b2abb9e/methods/pipelines-r/.67374bb6/parameters.json
+denet -i 50 -q -o scrapper-8-threads.json run snakemake -- --cores 1 --use-singularity datasets_datasets_r_8b2abb9e_methods_pipelines_r_67374bb6
+
+
+
