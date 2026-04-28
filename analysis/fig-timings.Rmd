@@ -45,6 +45,8 @@ metrics_new <- metrics_new %>%
 timings_plot <- metrics_new %>%
   rename_with(~ sub("^timings_", "", .x), starts_with("timings_"))
 
+keep_stages <- c("gpu_load", "hvg", "normalization", "pca", "umap", "leiden")
+
 timings_m_s <- metrics_new %>%
   pivot_longer(
     cols = starts_with("timings_"),
@@ -52,13 +54,13 @@ timings_m_s <- metrics_new %>%
     values_to = "value"
   ) %>%
   mutate(
-    stage = sub("^timings_", "", stage),
+    stage = factor(sub("^timings_", "", stage), levels = keep_stages),
     method_cluster = as.factor(paste0(method, ".", d_cluster))
   ) %>%
   filter(
     filtering == "manual", n_comp == 20,
     n_neig == 15, n_hvg == 2000,
-    stage %in% c("gpu_load", "hvg", "normalization", "pca", "umap", "leiden")
+    !is.na(stage)
   )
 ```
 
