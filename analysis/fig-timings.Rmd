@@ -59,7 +59,14 @@ timings_m_s <- metrics_new %>%
     filtering == "manual", n_comp == 20,
     n_neig == 15, n_hvg == 2000,
     stage %in% c("gpu_load", "hvg", "normalization", "pca", "umap", "leiden")
+  ) %>% 
+  mutate(
+    stage = factor(stage,
+                   levels = c("gpu_load", "normalization", "hvg",
+                              "pca", "umap", "leiden")
+    )
   )
+
 ```
 
 # Timings figures
