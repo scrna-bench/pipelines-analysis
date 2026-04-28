@@ -17,6 +17,7 @@ DOCS=(
   "supp-ari-vs-params.Rmd"
   "supp-linear-modelling.Rmd"
   "supp-metrics-corr.Rmd"
+  "supp-num-runs.Rmd"
 )
 
 for doc in "${DOCS[@]}"; do

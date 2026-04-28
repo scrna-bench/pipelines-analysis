@@ -1,0 +1,77 @@
+---
+title: "Supplementary: Number of Clustering Runs"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: lumen
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(here)
+library(tidyr)
+
+analysis_dir <- here("analysis")
+
+source(file.path(analysis_dir, "knitr.R"))
+source(file.path(analysis_dir, "theme.R"))
+theme_set(theme_paper(base_size = 12))
+```
+
+```{r load_data, include=FALSE}
+source(file.path(analysis_dir, "data.R"))
+```
+
+# Number of clustering runs
+
+```{r supp-num-runs, fig.height=5, fig.width=6.69}
+num_runs_full <- metrics_new %>%
+  filter(filtering == "manual") %>%
+  select(dataset, method, d_cluster, num_runs_leiden, num_runs_louvain) %>%
+  pivot_longer(
+    cols = c(num_runs_leiden, num_runs_louvain),
+    names_to = "algorithm", values_to = "num_runs"
+  ) %>%
+  mutate(
+    algorithm = recode(algorithm,
+      num_runs_leiden = "Leiden", num_runs_louvain = "Louvain"
+    ),
+    d_cluster = factor(d_cluster)
+  )
+
+num_runs <- num_runs_full %>% filter(d_cluster == 0)
+
+ggplot(num_runs, aes(x = method, y = num_runs, colour = algorithm)) +
+  geom_boxplot(width = 0.4, position = position_dodge(0.7)) +
+  facet_wrap(~dataset) +
+  scale_color_manual(
+    name = "Algorithm", values = c(Leiden = "#0077BB", Louvain = "#EE7733")
+  ) +
+  labs(x = "Method", y = "Number of runs") +
+  theme(axis.text.x = element_markdown(angle = 30, hjust = 1, vjust = 1.1))
+```
+
+# ANOVA: effect of method
+
+```{r num-runs-anova}
+fit <- aov(
+  num_runs ~ algorithm + dataset + d_cluster + method,
+  data = num_runs_full
+)
+summary(fit)
+```
+
+# Sample sizes
+
+```{r num-runs-n}
+num_runs %>%
+  group_by(dataset, method, algorithm) %>%
+  summarise(n = sum(!is.na(num_runs)), .groups = "drop") %>%
+  pivot_wider(names_from = algorithm, values_from = n) %>%
+  arrange(dataset, method) %>%
+  knitr::kable()
+```
