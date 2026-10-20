@@ -75,3 +75,64 @@ num_runs %>%
   arrange(dataset, method) %>%
   knitr::kable()
 ```
+
+# Convergence to the target number of clusters
+
+The resolution search targets K + `d_cluster` clusters, where K is the number of ground-truth labels in a dataset.
+We measure how far each search ended from its target, Δ = `n_clusters` - (K + `d_cluster`); a search converged when Δ = 0.
+We only include runs with manual filtering.
+
+```{r delta}
+# true number of clusters per dataset (clusters_truth_num.txt from the datasets module)
+k_truth <- c("sc-mix" = 5, cb = 8, be1 = 8)
+
+delta <- metrics_long_new %>%
+  filter(filtering == "manual") %>%
+  mutate(
+    algorithm = recode(algorithm, leiden = "Leiden", louvain = "Louvain"),
+    delta = n_clusters - (k_truth[as.character(dataset)] + d_cluster)
+  )
+
+missed <- filter(delta, delta != 0)
+```
+
+`r nrow(missed)` of `r nrow(delta)` searches (`r round(100 * nrow(missed) / nrow(delta), 1)`%) missed their target, and `r sum(abs(missed$delta) == 1)` of those missed by a single cluster.
+At `d_cluster = 0`, where the target is K itself, `r sum(missed$d_cluster == 0)` of `r sum(delta$d_cluster == 0)` searches missed.
+
+## Distribution of Δ
+
+Number of searches for each value of Δ.
+
+```{r delta-table}
+delta %>%
+  count(method, algorithm, delta) %>%
+  arrange(delta) %>%
+  pivot_wider(names_from = delta, values_from = n, values_fill = 0) %>%
+  arrange(method, algorithm) %>%
+  knitr::kable()
+```
+
+## Missed targets by method and `d_cluster`
+
+Percentage of searches with Δ ≠ 0; each tile summarises the `r nrow(delta) / nrow(distinct(delta, dataset, algorithm, method, d_cluster))` parameter combinations of that method and `d_cluster`.
+
+```{r supp-num-runs-delta, fig.height=4.5, fig.width=6.69}
+miss_rate <- delta %>%
+  group_by(dataset, algorithm, method, d_cluster) %>%
+  summarise(pct = 100 * mean(delta != 0), .groups = "drop")
+
+ggplot(miss_rate, aes(x = factor(d_cluster), y = method, fill = pct)) +
+  geom_tile(colour = "white", linewidth = 0.5) +
+  geom_text(
+    aes(label = ifelse(pct > 0, round(pct), ""), colour = pct > 50),
+    size = 2.8
+  ) +
+  facet_grid(algorithm ~ dataset) +
+  scale_y_discrete(limits = rev(names(met_cols))) +
+  scale_fill_distiller(
+    name = "% missed", palette = "Purples", direction = 1, limits = c(0, NA)
+  ) +
+  scale_colour_manual(values = c(`FALSE` = "black", `TRUE` = "white"), guide = "none") +
+  labs(x = "d_cluster", y = "Method") +
+  theme(axis.line = element_blank(), axis.ticks = element_blank())
+```
