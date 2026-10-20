@@ -7,7 +7,7 @@ library(scales)
 ### Pauline: I find that these colors are easier to distinguish,
 
 met_cols <- c(
-  seurat = "#009988", scrapper = "#33BBEE", osca = "#0077BB",  
+  seurat = "#009988", scrapper = "#33BBEE", osca = "#0032bb",  
   scanpy = "#EE7733", rapids = "#CC3311"   
 )
 
