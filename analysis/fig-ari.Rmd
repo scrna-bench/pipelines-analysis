@@ -29,8 +29,16 @@ source(file.path(analysis_dir, "data.R"))
 # ARI vs number of clusters
 
 ```{r ari-leiden-vs-clusters-group-paths, fig.height=5, fig.width=9}
+
+metrics_new <- metrics_new %>% mutate(cluster_misspec_leiden = n_clusters_leiden - (d_cluster+true_clusters[as.character(dataset)]),
+                                      cluster_misspec_louvain = n_clusters_louvain - (d_cluster+true_clusters[as.character(dataset)]))
+                                      
+with(metrics_new %>% filter(filtering == "manual"), 
+     table(method, cluster_misspec_leiden, dataset))
+
+
 ari_leiden_paths <- metrics_new %>%
-  filter(filtering == "manual") %>%
+  filter(filtering == "manual", cluster_misspec_leiden == 0) %>%
   group_by(dataset, method, d_cluster) %>%
   summarise(
     ari_median = median(agree_ari_leiden, na.rm = TRUE),

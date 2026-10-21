@@ -66,3 +66,5 @@ metrics_new <- metrics_all %>%
   filter(module %in% c("pipelines-r", "pipelines-py"))
 metrics_long_new <- metrics_long %>%
   filter(module %in% c("pipelines-r", "pipelines-py"))
+
+true_clusters <- c("be1" = 8, "sc-mix" = 5, "cb" = 8)
