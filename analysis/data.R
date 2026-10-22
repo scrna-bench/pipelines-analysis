@@ -39,6 +39,17 @@ metrics_all <- metrics_all %>%
     module = as.factor(module)
   )
 
+# true number of clusters per dataset (clusters_truth_num.txt, datasets module)
+true_clusters <- c("be1" = 8, "sc-mix" = 5, "cb" = 8)
+
+# achieved minus targeted number of clusters; 0 when the search hit its target
+metrics_all <- metrics_all %>%
+  mutate(
+    cluster_misspec_leiden = n_clusters_leiden -
+      (d_cluster + true_clusters[as.character(dataset)]),
+    cluster_misspec_louvain = n_clusters_louvain -
+      (d_cluster + true_clusters[as.character(dataset)])
+  )
 
 metrics_long <- metrics_all %>%
   pivot_longer(
@@ -46,11 +57,14 @@ metrics_long <- metrics_all %>%
       agree_ari_leiden, agree_ari_louvain,
       struc_silhouette_leiden, struc_silhouette_louvain,
       resolution_leiden, resolution_louvain,
-      n_clusters_leiden, n_clusters_louvain
+      n_clusters_leiden, n_clusters_louvain,
+      cluster_misspec_leiden, cluster_misspec_louvain
     ),
     names_to = c(".value", "algorithm"),
-    names_pattern =
-      "^(agree_ari|struc_silhouette|n_clusters|resolution)_(leiden|louvain)$"
+    names_pattern = paste0(
+      "^(agree_ari|struc_silhouette|n_clusters|resolution|cluster_misspec)",
+      "_(leiden|louvain)$"
+    )
   ) %>%
   rename(
     ari = agree_ari,

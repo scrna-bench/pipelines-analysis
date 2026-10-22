@@ -30,7 +30,8 @@ source(file.path(analysis_dir, "data.R"))
 # ARI v params
 
 ```{r supp-ari-vs-params, fig.height=8, fig.width=6.69}
-plot_df <- metrics_new %>% filter(filtering == "manual", d_cluster == 0)
+plot_df <- metrics_new %>%
+  filter(filtering == "manual", d_cluster == 0, cluster_misspec_leiden == 0)
 
 make_param_plot <- function(df, x_col, group_cols, x_label) {
   df_plot <- df %>%
