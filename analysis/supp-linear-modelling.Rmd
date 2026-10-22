@@ -29,13 +29,8 @@ source(file.path(analysis_dir, "data.R"))
 # Data preparation
 
 ```{r prep}
-metrics_new <- metrics_new %>% 
-  mutate(cluster_misspec_leiden = n_clusters_leiden - 
-           (d_cluster+true_clusters[as.character(dataset)]),
-         cluster_misspec_louvain = n_clusters_louvain -
-           (d_cluster+true_clusters[as.character(dataset)]))
-
-metrics_lm <- metrics_new %>% #filter(cluster_misspec_leiden==0) %>%
+metrics_lm <- metrics_new %>%
+  filter(cluster_misspec_leiden == 0) %>%
   mutate(
     d_cluster = relevel(as.factor(d_cluster), ref = "0"),
     n_comp = as.factor(n_comp),
@@ -44,7 +39,6 @@ metrics_lm <- metrics_new %>% #filter(cluster_misspec_leiden==0) %>%
   )
 
 dim(metrics_lm)
-
 ```
 
 # Linear models
